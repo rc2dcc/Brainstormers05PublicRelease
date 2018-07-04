@@ -1,0 +1,3073 @@
+%!PS-Adobe-3.0
+%%Title: score_bms.c
+%%For: Thomas Gabel
+%%Creator: a2ps version 4.13
+%%CreationDate: Mon Jul  4 14:10:24 2005
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 8
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontType get 0 eq {
+    currentfont /FontMatrix get 3 get
+  }{
+    currentfont /FontMatrix get 3 get 1000 mul
+  } ifelse
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Define these in case they're not in the FontInfo (also, here
+    % they're easier to get to.
+    /UnderlinePosition 1 def
+    /UnderlineThickness 1 def
+    
+    % Get the underline position and thickness if they're defined.
+    currentdict /FontInfo known {
+      FontInfo
+      
+      dup /UnderlinePosition known {
+	dup /UnderlinePosition get
+	0 exch FontMatrix transform exch pop
+	/UnderlinePosition exch def
+      } if
+      
+      dup /UnderlineThickness known {
+	/UnderlineThickness get
+	0 exch FontMatrix transform exch pop
+	/UnderlineThickness exch def
+      } if
+      
+    } if
+    currentdict 
+  end 
+} bind def
+
+% composite fonts for ASCII-EUC mixed strings
+% Version 1.2 1/31/1990
+% Original Ken'ichi HANDA (handa@etl.go.jp)
+% Modified Norio Katayama (katayama@rd.nacsis.ac.jp),1998
+% Extend & Fix Koji Nakamaru (maru@on.cs.keio.ac.jp), 1999
+% Anyone can freely copy, modify, distribute this program.
+
+/copyfont {	% font-dic extra-entry-count  copyfont  font-dic
+	1 index maxlength add dict begin
+	{	1 index /FID ne 2 index /UniqueID ne and
+		{def} {pop pop} ifelse
+	} forall
+	currentdict
+	end
+} bind def
+
+/compositefont { % ASCIIFontName EUCFontName RomanScale RomanOffset Rot(T/F) compositefont font
+    /RomanRotation exch def
+    /RomanOffset exch def
+    /RomanScale exch def
+    userdict /fixeucfont_dict known not {
+	userdict begin
+	    /fixeucfont_dict 2 dict begin
+		/UpperByteEncoding [
+		    16#00 1 16#20 { pop 0 } for
+		    16#21 1 16#28 { 16#20 sub } for
+		    16#29 1 16#2F { pop 0 } for
+		    16#30 1 16#74 { 16#27 sub } for
+		    16#75 1 16#FF { pop 0 } for
+		] def
+	        /LowerByteEncoding [
+		    16#00 1 16#A0 { pop /.notdef } for
+		    16#A1 1 16#FE { 16#80 sub 16 2 string cvrs
+				    (cXX) dup 1 4 -1 roll
+				    putinterval cvn } for
+		    /.notdef
+		] def
+		currentdict
+	    end def
+	end
+    } if
+    findfont dup /FontType get 0 eq {
+	14 dict begin
+	    %
+	    % 7+8 bit EUC font
+	    %
+	    12 dict begin
+		/EUCFont exch def
+		/FontInfo (7+8 bit EUC font) readonly def
+		/PaintType 0 def
+		/FontType 0 def
+		/FontMatrix matrix def
+		% /FontName
+		/Encoding fixeucfont_dict /UpperByteEncoding get def
+		/FMapType 2 def
+		EUCFont /WMode known
+		{ EUCFont /WMode get /WMode exch def }
+		{ /WMode 0 def } ifelse
+		/FDepVector [
+		    EUCFont /FDepVector get 0 get
+		    [ 16#21 1 16#28 {} for 16#30 1 16#74 {} for ]
+		    {
+			13 dict begin
+			    /EUCFont EUCFont def
+			    /UpperByte exch 16#80 add def	
+			    % /FontName
+			    /FontInfo (EUC lower byte font) readonly def
+			    /PaintType 0 def
+			    /FontType 3 def
+			    /FontMatrix matrix def
+			    /FontBBox {0 0 0 0} def
+			    /Encoding
+				fixeucfont_dict /LowerByteEncoding get def
+			    % /UniqueID
+			    % /WMode
+			    /BuildChar {
+				gsave
+				exch dup /EUCFont get setfont
+				/UpperByte get
+				2 string
+				dup 0 4 -1 roll put
+				dup 1 4 -1 roll put
+				dup stringwidth setcharwidth
+				0 0 moveto show
+				grestore
+			    } bind def
+			    currentdict
+			end
+			/lowerbytefont exch definefont
+		    } forall
+		] def
+		currentdict
+	    end
+	    /eucfont exch definefont
+	    exch
+	    findfont 1 copyfont dup begin
+		RomanRotation {
+			/FontMatrix FontMatrix
+			[ 0 RomanScale neg RomanScale 0 RomanOffset neg 0 ]
+			matrix concatmatrix def
+		}{
+			/FontMatrix FontMatrix
+			[ RomanScale 0 0 RomanScale 0 RomanOffset ] matrix concatmatrix
+			def
+			/CDevProc
+			    {pop pop pop pop 0 exch -1000 exch 2 div 880} def
+		} ifelse
+	    end
+	    /asciifont exch definefont
+	    exch
+	    /FDepVector [ 4 2 roll ] def
+	    /FontType 0 def
+	    /WMode 0 def
+	    /FMapType 4 def
+	    /FontMatrix matrix def
+	    /Encoding [0 1] def
+	    /FontBBox {0 0 0 0} def
+%	    /FontHeight 1.0 def % XXXX
+	    /FontHeight RomanScale 1.0 ge { RomanScale }{ 1.0 } ifelse def
+	    /Descent -0.3 def   % XXXX
+	    currentdict
+	end
+	/tmpfont exch definefont
+	pop
+	/tmpfont findfont
+    }{
+	pop findfont 0 copyfont
+    } ifelse
+} def	
+
+/slantfont {	% FontName slant-degree  slantfont  font'
+    exch findfont 1 copyfont begin
+    [ 1 0 4 -1 roll 1 0 0 ] FontMatrix exch matrix concatmatrix
+    /FontMatrix exch def
+    currentdict
+    end
+} def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 595 def
+/sw 842 def
+/llx 24 def
+/urx 818 def
+/ury 571 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 6.760028 def
+/cw 4.056017 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 96.400000 mul
+def
+/ph
+   504.974083 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 5 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(1) # (#include) K
+( ") p
+(score_bms.h) str
+(") p n
+(2) # () S
+(#include) K
+( ") p
+(ws_info.h) str
+(") p n
+(3) # () S
+(#include) K
+( ") p
+(mdp_info.h) str
+(") p n
+(4) # () S
+(#include) K
+( ") p
+(oneortwo_step_kick_bms.h) str
+(") p n
+(5) # () N
+(6) # () N
+(7) # () S
+(#if) K
+( 1) p n
+(8) # () S
+(#define) K
+( BASELEVEL 0 ) p
+(// level for logging; should be 3 for quasi non-logging) c n
+(9) # (//#define LOG_DAN\(YYY,XXX\) LOG_DEB\(YYY,XXX\)) N
+(10) # () S
+(#define) K
+( LOG_DAN\(YYY,XXX\)) p n
+(11) # () S
+(#else) K n
+(12) # (#define) S
+( BASELEVEL 3 ) p
+(// level for logging; should be 3 for quasi non-logging) c n
+(13) # () S
+(#define) K
+( LOG_DAN\(YYY,XXX\)) p n
+(14) # () S
+(#endif) K n
+(15) # () N
+(16) # () N
+(17) # () S
+(bool Score::initialized = false;) p n
+(18) # () N
+(19) # (Score::Score\(\) {) N
+(20) # (  last_time_look_to_goal = -1;) N
+(21) # (  goalshot_param1 = 0.3;) N
+(22) # (  goalshot_mode = 0;   ) S
+(//standard goalshot) c n
+(23) # () S
+(  nr_of_looks_to_goal = -1;  ) p n
+(24) # () N
+(25) # (  ValueParser vp\(CommandLineOptions::policy_conf,") S
+(score_bms) str
+("\);) p n
+(26) # (  vp.get\(") S
+(goalshot_param1) str
+(", goalshot_param1\);) p n
+(27) # (  vp.get\(") S
+(goalshot_mode) str
+(", goalshot_mode\);) p n
+(28) # () N
+(29) # (  oneortwo = new OneOrTwoStepKick\(\);) N
+(30) # (}) N
+(31) # () N
+(32) # (Score::~Score\(\) {) N
+(33) # (  delete oneortwo;) N
+(34) # (}) N
+(35) # () N
+(36) # (bool Score::get_cmd\(Cmd &cmd\) {) N
+(37) # (  ) S
+(/*) c n
+(38) # (  Intention intention;) N
+(39) # (  Value speed;) N
+(40) # (  Vector target;) N
+(41) # () N
+(42) # (  if \(test_shoot2goal\(intention\)\) {) N
+(43) # (    speed = intention.kick_speed;) N
+(44) # (    target = intention.kick_target;) N
+(45) # (    mdpInfo::set_my_intention\(DECISION_TYPE_SCORE, speed, 0, target.x, target.y,0\);) N
+(46) # (    LOG_POL\(BASELEVEL,<<"Score get_cmd: try to score w speed "<<speed<<" to target "<<targ) N
+0 T (et\);) N
+(47) # (    neurokick->kick_to_pos_with_initial_vel\(speed,target\);) N
+(48) # (    neurokick->get_cmd\(cmd\);) N
+(49) # (    return true;) N
+(50) # (  } else {) N
+(51) # (    return false;) N
+(52) # (  }) N
+(53) # (  */) N
+(54) # () S
+(}) p n
+(55) # () N
+(56) # (bool Score::test_shoot2goal\(Intention &intention\) {) N
+(57) # (  ) S
+(int) k
+( multi_step;) p n
+(58) # (  Value velocity, direction;) N
+(59) # (  Vector target;) N
+(60) # (  ) S
+(int) k
+( best_index;) p n
+(61) # () N
+(62) # (  ) S
+(int) k
+( result = get_goalshot_chance\(multi_step, velocity, direction, target, best_index\);) p n
+(63) # () N
+(64) # (  Value target_dir = \(mdpInfo::opponent_goalpos\(\)-WSinfo::me->pos\).arg\(\);) N
+(65) # () N
+(66) # (  risky_goalshot_possible = 0;) N
+(67) # () N
+(68) # () N
+(69) # () N
+(70) # (  ) S
+(if) K
+(\(goalshot_mode == 0\){) p n
+(71) # (    ) S
+(if) K
+( \(result == 4\) result = 1;) p n
+(72) # (  }) N
+(73) # (  ) S
+(else) K
+({) p n
+(score_bms.c) (Page 1/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(74) # (    ) p
+(if) K
+( \(result == 4\)) p n
+(75) # (      LOG_ERR\(0,") S
+(Goalshot risky, continue planning) str
+("\);) p n
+(76) # (  }) N
+(77) # (  ) N
+(78) # (  ) S
+(if) K
+( \(result == 0\) {) p n
+(79) # (    LOG_DAN\(BASELEVEL,") S
+(no goalshot found) str
+("\);) p n
+(80) # (    ) S
+(//no shot found) c n
+(81) # () S
+(    ) p
+(return) K
+( false;) p n
+(82) # () N
+(83) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(result == 1\) {) p n
+(84) # () N
+(85) # (    ) S
+(//secure shot) c n
+(86) # () S
+(    ) p
+(if) K
+( \(multi_step\) {) p n
+(87) # (      LOG_DAN\(0, << ") S
+(shoot with neuro_kick2! velocity = ) str
+(" << velocity ) p n
+(88) # () S 8 T (      << ") S
+( target.x = ) str
+(" << target.x << ") p
+( target.y = ) str
+(" << target.y\);) p n
+(89) # (      mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);) S
+(//directi) c n
+0 T (on\);) N
+(90) # () S
+(      ) p
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(91) # () S
+(      intention.set_score\(target, velocity, WSinfo::ws->time\);) p n
+(92) # (      ) S
+(return) K
+( true;) p n
+(93) # (      ) S
+(//return Move_Factory::get_1or2_Step_Kick\(velocity, target\);) c n
+(94) # () S
+(    } ) p
+(else) K
+( {) p n
+(95) # (      LOG_DAN\(0, << ") S
+(shoot with one step kick! velocity = ) str
+(" << velocity ) p n
+(96) # () S 8 T (         << ") S
+( dir = ) str
+(" << direction\);) p n
+(97) # (      intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(98) # (      ) S
+(return) K
+( true;) p n
+(99) # (      ) S
+(//      return Move_Factory::get_1Step_Kick\(velocity, direction\);) c n
+(100) # () S
+(    }) p n
+(101) # () N
+(102) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(result == 2\) {) p n
+(103) # () N
+(104) # (    ) S
+(//risky because of goalie_age?) c n
+(105) # () S
+(    ) p
+(if) K
+( \(\(mdpInfo::opponent_goalpos\(\) - WSinfo::me->pos\).norm\(\) > 30.0\) {) p n
+(106) # (      LOG_DAN\(BASELEVEL,") S
+(result 2 and too far away) str
+("\);) p n
+(107) # (      ) S
+(return) K
+( false;) p n
+(108) # (    }) N
+(109) # () N
+(110) # () S
+(#if) K
+( 0 ) p
+(// ridi 22.6.03 : replaced by new access to goalie) c n
+(111) # () S
+(    WSpset alive_opps = WSinfo::alive_opponents;) p n
+(112) # (    PPlayer goalie = alive_opps.get_player_by_number\(WSinfo::ws->his_goalie_number\);) N
+(113) # () S
+(#endif) K n
+(114) # () S
+(    PPlayer goalie;) p n
+(115) # (    ) S
+(if) K
+(\(WSinfo::his_goalie\)) p n
+(116) # (      goalie = WSinfo::his_goalie;) N
+(117) # (    ) S
+(else) K n
+(118) # () S
+(      ) p
+(return) K
+( false;) p n
+(119) # (    ) S
+(//if \(goalie == NULL\) return false;) c n
+(120) # () S
+(    WSpset pset_tmp = WSinfo::valid_opponents;) p n
+(121) # (    pset_tmp.keep_players_in_circle\(WSinfo::me->pos, 3.0\);) N
+(122) # (    ) S
+(if) K
+( \(pset_tmp.num > 0\) {) p n
+(123) # (      LOG_DAN\(0, << ") S
+(doing a risky shot because opponents are close!) str
+("\);) p n
+(124) # (      ) S
+(if) K
+( \(multi_step\) {) p n
+(125) # () S 8 T (LOG_DAN\(0, << ") S
+(shoot with neuro_kick2! velocity = ) str
+(" << velocity ) p n
+(126) # () S 8 T () S 16 T (<< ") S
+( target.x = ) str
+(" << target.x << ") p
+( target.y = ) str
+(" << target.y\);) p n
+(127) # () S 8 T (mdpInfo::set_my_intention\(DECISION_TYPE_SCORE, velocity, direction,) N
+(128) # () S 8 T () S 16 T () S 24 T () S 32 T (  target.x, target.y, best_index\);) N
+(129) # () S 8 T (mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);) S
+(//direc) c n
+0 T (tion\);) N
+(130) # () S
+() p 8 T (intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(131) # () S 8 T () S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(132) # () S
+() p 8 T () S
+(return) K
+( true;) p n
+(133) # () S 8 T () S
+(//return Move_Factory::get_Neuro_Kick2\(5, velocity, target.x, target.y\);) c n
+(134) # () S
+(      } ) p
+(else) K
+( {) p n
+(135) # () S 8 T (LOG_DAN\(0, << ") S
+(shoot with one step kick! velocity = ) str
+(" << velocity ) p n
+(136) # () S 8 T () S 16 T (<< ") S
+( dir = ) str
+(" << direction\);) p n
+(137) # () S 8 T () S
+(//) c 16 T (return Move_Factory::get_1Step_Kick\(velocity, direction\);) N
+(138) # () S
+() p 8 T (intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(139) # () S 8 T () S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(140) # () S
+() p 8 T () S
+(return) K
+( true;) p n
+(141) # (      }) N
+(142) # () N
+(143) # (    } ) S
+(else) K
+( {) p n
+(144) # () N
+(145) # (      ) S
+(if) K
+( \(goalie->age <= 4\) {) p n
+(score_bms.c) (Page 2/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (1/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(146) # () p 8 T (LOG_DAN\(0, << ") S
+(opponent goalie too young, don't look to him) str
+("\);) p n
+(147) # () S 8 T () S
+(return) K
+( false;) p n
+(148) # (      }) N
+(149) # () N
+(150) # (      LOG_DAN\(0, << ") S
+(opponent goalie too old, look to goal with hold ball) str
+("\);) p n
+(151) # (      ) S
+(//Value target_dir = \(mdpInfo::opponent_goalpos\(\)-WSinfo::me->pos\).arg\(\);) c n
+(152) # () S
+(      ) p n
+(153) # (      ) S
+(if) K
+( \(last_time_look_to_goal != WSinfo::ws->time - 1\) {) p n
+(154) # () S 8 T (nr_of_looks_to_goal = 1;) N
+(155) # (      } ) S
+(else) K
+( {) p n
+(156) # () S 8 T (++nr_of_looks_to_goal;) N
+(157) # (      }) N
+(158) # (      last_time_look_to_goal = WSinfo::ws->time;) N
+(159) # () N
+(160) # (      ) S
+(/*) c n
+(161) # (      if \(nr_of_looks_to_goal == 1\) {) N
+(162) # () S 8 T (LOG_DAN\(0, << "look to center of goal"\);) N
+(163) # () S 8 T (target_dir = \(mdpInfo::opponent_goalpos\(\)-WSinfo::me->pos\).arg\(\);) N
+(164) # (      }) N
+(165) # (      else if \(nr_of_looks_to_goal == 2\) {) N
+(166) # () S 8 T (LOG_DAN\(0, << "look to left goalcorner"\);) N
+(167) # () S 8 T (target_dir = \(ServerOptions::their_left_goal_corner-WSinfo::me->pos\).arg\(\);) N
+(168) # (      }) N
+(169) # (      else if \(nr_of_looks_to_goal == 3\) {) N
+(170) # () S 8 T (LOG_DAN\(0, << "look to right goalcorner"\);) N
+(171) # () S 8 T (target_dir = \(ServerOptions::their_right_goal_corner-WSinfo::me->pos\).arg\(\);) N
+(172) # (      }) N
+(173) # (      else if \(nr_of_looks_to_goal == 4\) {*/) N
+(174) # () S
+(      ) p
+(if) K
+( \(nr_of_looks_to_goal >= 3\) {) p n
+(175) # () S 8 T () S
+(if) K
+( \(multi_step\) {) p n
+(176) # () S 8 T (  LOG_DAN\(0, << ") S
+(I looked to goal, didn't see goalie and I'm close to goal, shoot) str
+("\);) p n
+(177) # () S 8 T (  LOG_DAN\(0, << ") S
+(shoot with neuro_kick2! velocity = ) str
+(" << velocity ) p n
+(178) # () S 8 T () S 16 T (  << ") S
+( target.x = ) str
+(" << target.x << ") p
+( target.y = ) str
+(" << target.y\);) p n
+(179) # () S 8 T (  mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, direction\);) N
+(180) # () S 8 T (  mdpInfo::set_my_intention\(DECISION_TYPE_SCORE, velocity, direction,) N
+(181) # () S 8 T () S 16 T () S 24 T () S 32 T (    target.x, target.y, best_index\);) N
+(182) # () S 8 T (  intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(183) # () S 8 T (  ) S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(184) # () S
+() p 8 T (  ) S
+(return) K
+( true;) p n
+(185) # () N
+(186) # () S 8 T (} ) S
+(else) K
+( {) p n
+(187) # () S 8 T (  LOG_DAN\(0, << ") S
+(shoot with one step kick! velocity = ) str
+(" << velocity ) p n
+(188) # () S 8 T () S 16 T (  << ") S
+( dir = ) str
+(" << direction\);) p n
+(189) # () S 8 T (  ) S
+(//return Move_Factory::get_1Step_Kick\(velocity, direction\);) c n
+(190) # () S
+() p 8 T (  intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(191) # () S 8 T (  ) S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(192) # () S
+() p 8 T (  ) S
+(return) K
+( true;) p n
+(193) # () S 8 T (}) N
+(194) # (      }) N
+(195) # () S 8 T () N
+(196) # (      mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);) N
+(197) # (      ) S
+(if) K
+(\(mdpInfo::could_see_in_direction\(target_dir\) == true\) {) p n
+(198) # () S 8 T () S
+(// I can see in direction by turning neck without turning body) c n
+(199) # () S
+() p 8 T (mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);) N
+(200) # () S 8 T (mdpInfo::set_my_intention\(DECISION_TYPE_LOOKFORGOALIE, mdpInfo::opponent_goalpos\(\)) N
+0 T (.x, ) N
+(201) # () S 8 T () S 16 T () S 24 T () S 32 T (  mdpInfo::opponent_goalpos\(\).y\);) N
+(202) # () S 8 T () S
+(// ridi03:todo) c n
+(203) # () S
+() p 8 T () S
+(//) c 16 T (return Move_Factory::get_Hold_Ball\(1\);) S 56 T () N
+(204) # () S
+() p 8 T () N
+(205) # () S 8 T () S
+(//LOG_ERR\(0,"WBALL03: should hold ball and look; not yet implemented"\);) c n
+(206) # () S
+() p 8 T () S
+(//LOG_DAN\(BASELEVEL,"WBALL03: should hold ball and look; not yet implemented"\);) c n
+(207) # () S
+() p 8 T (intention.set_holdturn\(ANGLE\(target_dir\), WSinfo::ws->time\);) N
+(208) # () S 8 T () S
+(return) K
+( true;) p n
+(209) # (      } ) S
+(else) K
+( {) p n
+(210) # () S 8 T () S
+(// have to turn body.) c n
+(211) # () S
+() p 8 T (LOG_DAN\(0, ") S
+( have to turn body, but don't do it) str
+("\);) p n
+(212) # () S 8 T (last_time_look_to_goal = -1;) N
+(213) # () S 8 T () S
+(return) K
+( false;) p n
+(214) # () S 8 T () S
+(/*) c n
+(215) # () S 8 T (  mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);     ) N
+(216) # () S 8 T (  return Move_Factory::get_Hold_Ball\(target_dir,1\); ) N
+(217) # () S 8 T (*/) N
+(218) # () S
+(      }) p n
+(score_bms.c) (Page 3/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(219) # (    }) p n
+(220) # () N
+(221) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(result == 3\) {) p n
+(222) # (    ) S
+(//risky because opponent could intercept) c n
+(223) # () N
+(224) # () S
+(  } ) p
+(else) K
+( ) p
+(if) K
+( \(result == 4\) {) p n
+(225) # (    ) S
+(//risky because goal could be missed) c n
+(226) # () N
+(227) # () S
+(    saved_velocity = velocity;) p n
+(228) # (    saved_direction = direction;) N
+(229) # (    saved_target = target;) N
+(230) # (    saved_multi_step = multi_step;) N
+(231) # (    risky_goalshot_possible = 1;) N
+(232) # () N
+(233) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(\(result == 5\) || \(result == 6\)\) {) p n
+(234) # (    ) S
+(//opponent goalie not alive or goalie number not known or other strange problem) c n
+(235) # () N
+(236) # () S
+(    ) p
+(if) K
+( \(\(mdpInfo::opponent_goalpos\(\) - WSinfo::me->pos\).norm\(\) > 25.0\) {) p n
+(237) # (      LOG_DAN\(0, ") S
+( result 5 and too far) str
+("\);) p n
+(238) # (      ) S
+(return) K
+( false;) p n
+(239) # (    }) N
+(240) # () N
+(241) # (    LOG_DAN\(0, << ") S
+(opponent goalie not alive, number not known or other strange problem, look to goal with hold ball) str
+("\);) p n
+(242) # (    Value target_dir = \(mdpInfo::opponent_goalpos\(\)-WSinfo::me->pos\).arg\(\);) N
+(243) # (    ) N
+(244) # (    ) S
+(if) K
+( \(last_time_look_to_goal != WSinfo::ws->time - 1\) {) p n
+(245) # (      nr_of_looks_to_goal = 1;) N
+(246) # (    } ) S
+(else) K
+( {) p n
+(247) # (      ++nr_of_looks_to_goal;) N
+(248) # (    }) N
+(249) # (    last_time_look_to_goal = WSinfo::ws->time;) N
+(250) # () N
+(251) # (    target_dir = \(mdpInfo::opponent_goalpos\(\)-WSinfo::me->pos\).arg\(\);) N
+(252) # (    ) S
+(/*) c n
+(253) # (    if \(nr_of_looks_to_goal == 1\) target_dir = \(mdpInfo::opponent_goalpos\(\)-WSinfo::me->po) N
+0 T (s\).arg\(\);) N
+(254) # (    else if \(nr_of_looks_to_goal == 2\) target_dir = \(ServerOptions::their_left_goal_corner) N
+0 T (-WSinfo::me->pos\).arg\(\);) N
+(255) # (    else if \(nr_of_looks_to_goal == 3\) target_dir = \(ServerOptions::their_right_goal_corne) N
+0 T (r-WSinfo::me->pos\).arg\(\);) N
+(256) # (    else if \(nr_of_looks_to_goal == 4\) {*/) N
+(257) # () S
+(    ) p
+(if) K
+( \(nr_of_looks_to_goal >= 3\) {) p n
+(258) # (      ) S
+(if) K
+( \(result == 6\) {) p n
+(259) # () S 8 T (Vector goal = Vector\(ServerOptions::pitch_length/2.0, 0.0\);) N
+(260) # () S 8 T (ANGLE angle = \(goal-WSinfo::ball->pos\).ARG\(\);) N
+(261) # () S 8 T (Value one_step_vel, multi_step_vel;) N
+(262) # () S 8 T () S
+(//Move_1or2_Step_Kick::get_vel_in_dir\(3.0, angle, one_step_vel, multi_step_vel\);) c n
+(263) # () S
+() p 8 T (oneortwo->kick_in_dir_with_max_vel\(ANGLE\(angle\)\);) N
+(264) # () S 8 T (oneortwo->get_vel\(one_step_vel, multi_step_vel\);) N
+(265) # () N
+(266) # () S 8 T () S
+(if) K
+( \(one_step_vel > ServerOptions::ball_speed_max\)) p n
+(267) # () S 8 T (  one_step_vel = ServerOptions::ball_speed_max;) N
+(268) # () N
+(269) # () S 8 T () S
+(if) K
+( \(multi_step_vel > ServerOptions::ball_speed_max\)) p n
+(270) # () S 8 T (  multi_step_vel = ServerOptions::ball_speed_max;) N
+(271) # () N
+(272) # () S 8 T (LOG_DAN\(0, << ") S
+(I looked to goal, didn't see goalie AND opponents and I'm close to goal, shoot) str
+("\);) p n
+(273) # () S 8 T (LOG_DAN\(0, << ") S
+(shoot with neuro_kick2! velocity = ) str
+(" << multi_step_vel ) p n
+(274) # () S 8 T () S 16 T (<< ") S
+( target.x = ) str
+(" << goal.x << ") p
+( target.y = ) str
+(" << goal.y\);) p n
+(275) # () S 8 T (mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, ) N
+(276) # () S 8 T () S 16 T () S 24 T () S 32 T (       \(goal-WSinfo::me->pos\).arg\(\)\);) N
+(277) # () S 8 T () S
+(//return Move_Factory::get_Neuro_Kick2\(5, velocity, target.x, target.y\);) c n
+(278) # () S
+() p 8 T (intention.set_score\(goal, multi_step_vel, WSinfo::ws->time\);) N
+(279) # () S 8 T () S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(280) # () S
+() p 8 T () S
+(return) K
+( true;) p 24 T () N
+(281) # (      }) N
+(282) # (      ) S
+(if) K
+( \(multi_step\) {) p n
+(283) # () S 8 T (LOG_DAN\(0, << ") S
+(I looked to goal, didn't see goalie and I'm close to goal, shoot) str
+("\);) p n
+(284) # () S 8 T (LOG_DAN\(0, << ") S
+(shoot with neuro_kick2! velocity = ) str
+(" << velocity ) p n
+(285) # () S 8 T () S 16 T (<< ") S
+( target.x = ) str
+(" << target.x << ") p
+( target.y = ) str
+(" << target.y\);) p n
+(286) # () S 8 T (mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, ) N
+(287) # () S 8 T () S 16 T () S 24 T () S 32 T (       \(target-WSinfo::me->pos\).arg\(\)\);) N
+(288) # () S 8 T () S
+(//return Move_Factory::get_Neuro_Kick2\(5, velocity, target.x, target.y\);) c n
+(289) # () S
+() p 8 T (intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(score_bms.c) (Page 4/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (2/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(290) # () p 8 T () S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(291) # () S
+() p 8 T () S
+(return) K
+( true;) p n
+(292) # () N
+(293) # () S 8 T () S
+(//return Move_Factory::get_1or2_Step_Kick\(velocity, target\);) c n
+(294) # () S
+(      } ) p
+(else) K
+( {) p n
+(295) # () S 8 T (LOG_DAN\(0, << ") S
+(shoot with one step kick! velocity = ) str
+(" << velocity ) p n
+(296) # () S 8 T () S 16 T (<< ") S
+( dir = ) str
+(" << direction\);) p n
+(297) # () S 8 T (intention.set_score\(target, velocity, WSinfo::ws->time\);) N
+(298) # () S 8 T () S
+(//set_aaction_score\(aaction, target, velocity\);) c n
+(299) # () S
+() p 8 T () S
+(return) K
+( true;) p n
+(300) # () S 8 T () S
+(//return Move_Factory::get_1Step_Kick\(velocity, direction\);) c n
+(301) # () S
+(      }) p n
+(302) # (    }) N
+(303) # (    ) N
+(304) # (    mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);) N
+(305) # (    ) S
+(if) K
+(\(mdpInfo::could_see_in_direction\(target_dir\) == true\) {) p n
+(306) # (      ) S
+(// I can see in direction by turning neck without turning body) c n
+(307) # () S
+(      mdpInfo::set_my_neck_intention\(NECK_INTENTION_LOOKINDIRECTION, target_dir\);) p n
+(308) # (      mdpInfo::set_my_intention\(DECISION_TYPE_LOOKFORGOALIE, mdpInfo::opponent_goalpos\(\).x) N
+0 T (, ) N
+(309) # () S 8 T () S 16 T () S 24 T () S 32 T (mdpInfo::opponent_goalpos\(\).y\);) N
+(310) # () N
+(311) # (      ) S
+(// ridi03:todo) c n
+(312) # () S
+(      ) p
+(//) c 16 T (return Move_Factory::get_Hold_Ball\(1\);) S 56 T () N
+(313) # () S
+(      LOG_ERR\(0,") p
+(WBALL03: should hold ball and look; not yet implemented) str
+("\);) p n
+(314) # (      LOG_DAN\(0,") S
+(WBALL03: should hold ball and look; not yet implemented) str
+("\);) p n
+(315) # (      intention.set_holdturn\(ANGLE\(target_dir\), WSinfo::ws->time\);) N
+(316) # (      ) S
+(return) K
+( true;) p n
+(317) # (    } ) S
+(else) K
+( {) p n
+(318) # (      ) S
+(// have to turn body.) c n
+(319) # () S
+(      LOG_DAN\(0, ") p
+( have to turn body, but don't do it) str
+("\);) p n
+(320) # (      last_time_look_to_goal = -1;) N
+(321) # (      ) S
+(return) K
+( false;) p n
+(322) # (    }) N
+(323) # (  }    ) N
+(324) # (  LOG_DAN\(0, ") S
+( shoot 2 goal - unsuccessful result ) str
+("<<result\);    ) p n
+(325) # (  ) S
+(return) K
+( false;) p n
+(326) # (}) N
+(327) # () N
+(328) # () N
+(329) # () S
+(int) k
+( Score::get_goalshot_chance\() p
+(int) k
+( &multi_step, Value &velocity, ) p n
+(330) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (       Value &direction, Vector &target, ) S
+(int) k
+( &best) p n
+0 T (_index\) {) N
+(331) # () N
+(332) # (  ) S
+(if) K
+( \(WSinfo::me->pos.x < 15.0\) ) p
+(return) K
+( 0;) p n
+(333) # () N
+(334) # (  ) S
+(if) K
+( \( \(Tools::my_abs_angle_to\(Vector\(FIELD_BORDER_X, 0.0\)\).get_value\(\) > DEG2RAD\(83\)\) &&) p n
+(335) # (       \(Tools::my_abs_angle_to\(Vector\(FIELD_BORDER_X, 0.0\)\).get_value\(\) < DEG2RAD\(277\)\) &&) N
+(336) # (       fabs\(WSinfo::me->pos.y\) > 8.0\) {) N
+(337) # (    ) S
+(//LOG_DEB\(0, << "don't shoot, wrong angle"\);) c n
+(338) # () S
+(    ) p
+(return) K
+( 0;) p n
+(339) # (  }) N
+(340) # (  ) N
+(341) # (  Vector test_targets[9];) N
+(342) # (  Value test_dirs[9];) N
+(343) # (  Value test_vels_1step[9];) N
+(344) # (  Value test_vels_multi[9];) N
+(345) # (  ) S
+(int) k
+( one_step_kick_possible[9];) p n
+(346) # (  ) S
+(int) k
+( multi_kick_possible[9];) p n
+(347) # (  ) S
+(int) k
+( secure_1step_kick_possible[9];) p n
+(348) # (  ) S
+(int) k
+( secure_multi_kick_possible[9];) p n
+(349) # (  ) S
+(int) k
+( ball_steps_to_goal[9];) p n
+(350) # (  ) S
+(int) k
+( ret = 0;) p n
+(351) # () N
+(352) # (  Vector ball_pos = WSinfo::ball->pos;) N
+(353) # () N
+(354) # () S
+(#if) K
+( 0 ) p
+(// ridi 22.6.03 : replaced by new access to goalie) c n
+(355) # () S
+(  WSpset alive_opps = WSinfo::alive_opponents;) p n
+(356) # (  PPlayer goalie = alive_opps.get_player_by_number\(WSinfo::ws->his_goalie_number\);) N
+(357) # () S
+(#endif) K n
+(358) # () N
+(359) # () S
+(  PPlayer goalie =WSinfo::his_goalie;) p n
+(360) # () N
+(361) # (  ) S
+(if) K
+( \(goalie == ) p
+(NULL) K
+(\) {) p n
+(score_bms.c) (Page 5/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(362) # (    ret = 5;) p n
+(363) # (    WSpset valid_opps = WSinfo::valid_opponents;) N
+(364) # (    valid_opps.keep_and_sort_closest_players_to_point\(1, mdpInfo::opponent_goalpos\(\)\);) N
+(365) # (    ) S
+(if) K
+( \(valid_opps.num <= 0\) {) p n
+(366) # (      ) S
+(return) K
+( 6;) p n
+(367) # (    }) N
+(368) # (    goalie = valid_opps[0];) N
+(369) # (  }) N
+(370) # () N
+(371) # (  Vector goalie_pos = goalie->pos;) N
+(372) # (  ) S
+(int) k
+( goalie_age = goalie->age;) p n
+(373) # (  Vector goalie_vel = goalie->vel;) N
+(374) # (  ) S
+(int) k
+( goalie_vel_age = goalie->age_vel;) p n
+(375) # (  ) N
+(376) # (  Value goalie_initial_size = goalshot_param1;) S
+(//0.4) c n
+(377) # () N
+(378) # () N
+(379) # () S
+(  ) p
+(if) K
+( \(\(\(ball_pos-goalie_pos\).norm\(\) > 20.0\) &&) p n
+(380) # (      \(Tools::get_angle_between_null_2PI\(\(\(ServerOptions::their_left_goal_corner-ball_pos\)) N
+0 T (.arg\(\) - ) N
+(381) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (  \(goalie_pos-ball_pos\).arg\(\)\)\) < M_PI\) &&) N
+(382) # (      \(Tools::get_angle_between_null_2PI\(\(\(goalie_pos-ball_pos\).arg\(\) - ) N
+(383) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (  \(ServerOptions::their_right_goal_corner-ball_pos) N
+0 T (\).arg\(\)\)\)<M_PI\)\) {) N
+(384) # (    LOG_DAN\(0, << ") S
+(don't consider shooting, goalie is on place and I'm too far away!) str
+("\);) p n
+(385) # (    ) S
+(return) K
+( 0;) p n
+(386) # (  }) N
+(387) # () N
+(388) # (  consider_special_cases\(goalie_age, goalie_vel_age, goalie_vel, goalie_initial_size, goal) N
+0 T (ie_pos, goalie\);) N
+(389) # () N
+(390) # (  fill_target_arrays\(test_targets, test_dirs, 9, ball_pos\);) N
+(391) # () N
+(392) # (  ) S
+(//fill_velocity_arrays\(test_vels_1step, test_vels_multi, test_dirs, 9\);) c n
+(393) # () S
+(  fill_velocity_arrays\(test_vels_1step, test_vels_multi, test_targets, 9\);) p n
+(394) # () N
+(395) # (  Vector kick_vel;) N
+(396) # (  ) S
+(int) k
+( goalie_intercepts = 0;) p n
+(397) # (  ) S
+(int) k
+( player_intercepts = 0;) p n
+(398) # (  ) S
+(int) k
+( best_kick = -1;) p n
+(399) # (  ) S
+(int) k
+( kick_found = 0;) p n
+(400) # () N
+(401) # (  Value goalie_size = goalie_initial_size;) N
+(402) # () N
+(403) # (  ) S
+(//test for multi-step-kicks, use current goalie-pos\(even if old\)) c n
+(404) # () S
+(  ) p
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; i++\) {) p n
+(405) # (    kick_vel.init_polar\(test_vels_multi[i], test_dirs[i]\);) N
+(406) # (    goalie_intercepts = intercept_goalie\(ball_pos, kick_vel, goalie_pos, goalie_size + 0.3) N
+0 T (\);) N
+(407) # (    ) S
+(if) K
+( \(goalie_intercepts <= 0\) {) p n
+(408) # (      multi_kick_possible[i] = 1;) N
+(409) # (      kick_found = 1;) N
+(410) # (    } ) S
+(else) K
+( {) p n
+(411) # (      multi_kick_possible[i] = 0;) N
+(412) # (    }) N
+(413) # (    ) S
+(/*) c n
+(414) # (    LOG_DAN\(0, << _2D << L2D\( ball_pos.x, ball_pos.y, ball_pos.x + kick_vel.x * 3.0, ) N
+(415) # () S 8 T () S 16 T () S 24 T (      ball_pos.y + kick_vel.y * 3.0, "#ff0000" \)\);) N
+(416) # (    */) N
+(417) # () S
+(  }) p n
+(418) # () N
+(419) # (  ) S
+(//no multi-kick found => no single kick is possible, return!) c n
+(420) # () S
+(  ) p
+(//if \(!kick_found\) return 0;) c n
+(421) # () S
+(  ) p n
+(422) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; i++\) {) p n
+(423) # (    ) S
+(//only test for 1step-kick if multi-step-kick could be succesful) c n
+(424) # () S
+(    ) p
+(/*) c n
+(425) # (    if \(!multi_kick_possible[i]\) {) N
+(426) # (      one_step_kick_possible[i] = 0;) N
+(427) # (      continue;) N
+(428) # (      }*/) N
+(429) # () N
+(430) # () S
+(    kick_vel.init_polar\(test_vels_1step[i], test_dirs[i]\);) p n
+(431) # (    goalie_intercepts = intercept_goalie\(ball_pos, kick_vel, goalie_pos, goalie_size\);) N
+(score_bms.c) (Page 6/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (3/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(432) # (    ball_steps_to_goal[i] = goalie_intercepts;) p n
+(433) # (    ) S
+(if) K
+( \(goalie_intercepts <= 0\) {) p n
+(434) # (      one_step_kick_possible[i] = 1;) N
+(435) # (      kick_found = 1;) N
+(436) # (    } ) S
+(else) K
+( {) p n
+(437) # (      one_step_kick_possible[i] = 0;) N
+(438) # (    }) N
+(439) # (  }) N
+(440) # () N
+(441) # (  ) S
+(//no kick found => return!) c n
+(442) # () S
+(  ) p
+(if) K
+( \(!kick_found\) ) p
+(return) K
+( 0;) p n
+(443) # () N
+(444) # (  ) S
+(if) K
+( \(\(goalie_age <= 4\) &&) p n
+(445) # (      \(goalie_age >= 1\)\) {) N
+(446) # (    Value goalie_dir = \(goalie->pos - ball_pos\).arg\(\);) N
+(447) # (    ) S
+(int) k
+( top_of_goalie_shots = 0, bottom_of_goalie_shots = 0;) p n
+(448) # (    ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(449) # (      ) S
+(if) K
+( \(multi_kick_possible[i]\) {) p n
+(450) # () S 8 T () S
+(if) K
+( \(Tools::get_angle_between_null_2PI\(test_dirs[i]-goalie_dir\) < M_PI\) {) p n
+(451) # () S 8 T (  ++top_of_goalie_shots;) N
+(452) # () S 8 T (} ) S
+(else) K
+( {) p n
+(453) # () S 8 T (  ++bottom_of_goalie_shots;) N
+(454) # () S 8 T (}) N
+(455) # (      }) N
+(456) # (    }) N
+(457) # (    ) S
+(//shots on both sides of goalie are possible => goalie can't cover the whole goal, eve) c n
+0 T (n if he) N
+(458) # () S
+(    ) p
+(//moved, declare the shots with old goalie-pos as secure!) c n
+(459) # () S
+(    ) p
+(if) K
+( \(\(top_of_goalie_shots > 0\) && \(bottom_of_goalie_shots > 0\)\) {) p n
+(460) # (      LOG_DAN\(0, << ") S
+(goalie is old, but shots on both sides of goalie are possible, use old goalie-pos) str
+("\);) p n
+(461) # (      ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(462) # () S 8 T (secure_multi_kick_possible[i] = multi_kick_possible[i];) N
+(463) # () S 8 T (secure_1step_kick_possible[i] = one_step_kick_possible[i];) N
+(464) # (      }) N
+(465) # (      ) S
+(//hack: don't consider the other shots below) c n
+(466) # () S
+(      goalie_age = 0;) p n
+(467) # (    }) N
+(468) # (  }) N
+(469) # () N
+(470) # (  ) S
+(if) K
+( \(goalie_age <= 4\) {) p n
+(471) # (    goalie_size = goalie_initial_size + 0.8 * goalie_age;) N
+(472) # (  } ) S
+(else) K
+( {) p n
+(473) # (    ) S
+(//no special case here) c n
+(474) # () S
+(    goalie_size = goalie_initial_size + 0.8 * goalie_age;) p n
+(475) # (  }) N
+(476) # () N
+(477) # (  LOG_DAN\(0, << ") S
+(goalie_age ist ) str
+(" << goalie_age\);) p n
+(478) # (  LOG_DAN\(0, << ") S
+(goalie_size ist ) str
+(" << goalie_size\);) p n
+(479) # () N
+(480) # (  ) S
+(if) K
+( \(goalie_age >= 1\) {) p n
+(481) # () N
+(482) # (    ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(483) # (      kick_vel.init_polar\(test_vels_multi[i], test_dirs[i]\);) N
+(484) # (      goalie_intercepts = intercept_goalie\(ball_pos, kick_vel, goalie_pos, goalie_size\);) N
+(485) # (      ) S
+(if) K
+( \(goalie_intercepts <= 0\) {) p n
+(486) # () S 8 T (secure_multi_kick_possible[i] = 1;) N
+(487) # (      } ) S
+(else) K
+( {) p n
+(488) # () S 8 T (secure_multi_kick_possible[i] = 0;) N
+(489) # (      }) N
+(490) # (    }) N
+(491) # () N
+(492) # (    ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(493) # (      ) S
+(if) K
+( \(!secure_multi_kick_possible[i]\) {) p n
+(494) # () S 8 T (secure_1step_kick_possible[i] = 0;) N
+(495) # () S 8 T () S
+(continue) K
+(;) p n
+(496) # (      }) N
+(497) # (      kick_vel.init_polar\(test_vels_1step[i], test_dirs[i]\);) N
+(498) # (      goalie_intercepts = intercept_goalie\(ball_pos, kick_vel, goalie_pos, goalie_size\);) N
+(499) # (      ) S
+(if) K
+( \(goalie_intercepts <= 0\) {) p n
+(500) # () S 8 T (secure_1step_kick_possible[i] = 1;) N
+(501) # (      } ) S
+(else) K
+( {) p n
+(502) # () S 8 T (secure_1step_kick_possible[i] = 0;) N
+(503) # (      }) N
+(504) # (    }) N
+(score_bms.c) (Page 7/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(505) # () p n
+(506) # (  } ) S
+(else) K
+( {) p n
+(507) # (    ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(508) # (      secure_multi_kick_possible[i] = multi_kick_possible[i];) N
+(509) # (      secure_1step_kick_possible[i] = one_step_kick_possible[i];) N
+(510) # (    }) N
+(511) # (  }) N
+(512) # () N
+(513) # (  ) S
+(//test if opponent could intercept) c n
+(514) # () S
+(  ) p
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(515) # (    ) S
+(//if \(!multi_kick_possible[i]\) continue;) c n
+(516) # () S
+(    ) p n
+(517) # (    player_intercepts = intercept_opponents\(test_dirs[i], test_vels_multi[i], -ball_steps_) N
+0 T (to_goal[i]\);) N
+(518) # (    ) S
+(if) K
+( \(player_intercepts\) {) p n
+(519) # (      LOG_DAN\(0, << ") S
+(opponent number ) str
+(" << player_intercepts ) p n
+(520) # () S 8 T (      << ") S
+( intercepts ball before goalline, don't shoot!) str
+("\);) p n
+(521) # (      multi_kick_possible[i] = 0;) N
+(522) # (      secure_multi_kick_possible[i] = 0;) N
+(523) # (      one_step_kick_possible[i] = 0;) N
+(524) # (      secure_1step_kick_possible[i] = 0;) N
+(525) # (    }) N
+(526) # (  }) N
+(527) # () N
+(528) # () N
+(529) # (  ) S
+(int) k
+( one_step_kick_found = 0, multi_kick_found = 0;) p n
+(530) # (  ) S
+(int) k
+( secure_1step_kick_found = 0, secure_multi_kick_found = 0;) p n
+(531) # () N
+(532) # () N
+(533) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < 9; ++i\) {) p n
+(534) # (    ) S
+(if) K
+( \(secure_multi_kick_possible[i]\) ++secure_multi_kick_found;) p n
+(535) # (    ) S
+(if) K
+( \(secure_1step_kick_possible[i]\) ++secure_1step_kick_found;) p n
+(536) # (    ) S
+(if) K
+( \(multi_kick_possible[i]\) ++multi_kick_found;) p n
+(537) # (    ) S
+(if) K
+( \(one_step_kick_possible[i]\) ++one_step_kick_found;) p n
+(538) # (  }) N
+(539) # () N
+(540) # (  ) S
+(//select best kick) c n
+(541) # () S
+(  ) p
+(if) K
+( \(secure_multi_kick_found != 0\) {) p n
+(542) # () N
+(543) # (    ) S
+(if) K
+( \(\(secure_multi_kick_found > secure_1step_kick_found\) ||) p n
+(544) # () S 8 T (\(secure_1step_kick_found == 0\)\) {) N
+(545) # (      ) S
+(//if \(\(mdpInfo::opponents_within_range\(WSinfo::me->pos, 2.0\) == 0\) || ) c n
+(546) # () S
+(      ) p
+(//\(secure_1step_kick_found == 0\) ||) c n
+(547) # () S
+(      ) p
+(//\(secure_multi_kick_found > secure_1step_kick_found\)\) {) c n
+(548) # () N
+(549) # () S
+(      best_kick = select_best_kick\(secure_multi_kick_possible, 9\);) p n
+(550) # (      multi_step = 1;) N
+(551) # (      velocity = test_vels_multi[best_kick];) N
+(552) # (      direction = test_dirs[best_kick];) N
+(553) # (      target = test_targets[best_kick];) N
+(554) # (      ) S
+(if) K
+( \(ret == 0\) {) p n
+(555) # () S 8 T () S
+(if) K
+( \(best_kick >= 7\) {) p n
+(556) # () S 8 T (  ret = 4;) N
+(557) # () S 8 T (} ) S
+(else) K
+( {) p n
+(558) # () S 8 T (  ret = 1;) N
+(559) # () S 8 T (}) N
+(560) # (      }) N
+(561) # (    } ) S
+(else) K
+( {) p n
+(562) # (      best_kick = select_best_kick\(secure_1step_kick_possible, 9\);) N
+(563) # (      multi_step = 0;) N
+(564) # (      velocity = test_vels_1step[best_kick];) N
+(565) # (      direction = test_dirs[best_kick];) N
+(566) # (      target = test_targets[best_kick];) N
+(567) # (      ) S
+(if) K
+( \(ret == 0\) {) p n
+(568) # () S 8 T () S
+(if) K
+( \(best_kick >= 7\) {) p n
+(569) # () S 8 T (  ret = 4;) N
+(570) # () S 8 T (} ) S
+(else) K
+( {) p n
+(571) # () S 8 T (  ret = 1;) N
+(572) # () S 8 T (}) N
+(573) # (      }) N
+(574) # (    }) N
+(575) # () N
+(576) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(secure_1step_kick_found != 0\) {) p n
+(577) # () N
+(score_bms.c) (Page 8/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (4/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9-10) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(578) # (    best_kick = select_best_kick\(secure_1step_kick_possible, 9\);) p n
+(579) # (    multi_step = 0;) N
+(580) # (    velocity = test_vels_1step[best_kick];) N
+(581) # (    direction = test_dirs[best_kick];) N
+(582) # (    target = test_targets[best_kick];) N
+(583) # (    ) S
+(if) K
+( \(ret == 0\) {) p n
+(584) # (      ) S
+(if) K
+( \(best_kick >= 7\) {) p n
+(585) # () S 8 T (ret = 4;) N
+(586) # (      } ) S
+(else) K
+( {) p n
+(587) # () S 8 T (ret = 1;) N
+(588) # (      }) N
+(589) # (    }) N
+(590) # () N
+(591) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(multi_kick_found != 0\) {) p n
+(592) # () N
+(593) # (    ) S
+(if) K
+( \(\(multi_kick_found-1 > one_step_kick_found\) ||) p n
+(594) # () S 8 T (\(one_step_kick_found == 0\)\) {) N
+(595) # (      best_kick = select_best_kick\(multi_kick_possible, 9\);) N
+(596) # (      multi_step = 1;) N
+(597) # (      velocity = test_vels_multi[best_kick];) N
+(598) # (      direction = test_dirs[best_kick];) N
+(599) # (      target = test_targets[best_kick];) N
+(600) # (      ) S
+(if) K
+( \(ret == 0\) {) p n
+(601) # () S 8 T (ret = 2;) N
+(602) # (      }) N
+(603) # (    } ) S
+(else) K
+( {) p n
+(604) # (      best_kick = select_best_kick\(one_step_kick_possible, 9\);) N
+(605) # (      multi_step = 0;) N
+(606) # (      velocity = test_vels_1step[best_kick];) N
+(607) # (      direction = test_dirs[best_kick];) N
+(608) # (      target = test_targets[best_kick];) N
+(609) # (      ) S
+(if) K
+( \(ret == 0\) {) p n
+(610) # () S 8 T (ret = 2;) N
+(611) # (      }) N
+(612) # (    }) N
+(613) # () N
+(614) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(one_step_kick_found != 0\) {) p n
+(615) # () N
+(616) # (    best_kick = select_best_kick\(one_step_kick_possible, 9\);) N
+(617) # (    multi_step = 0;) N
+(618) # (    velocity = test_vels_1step[best_kick];) N
+(619) # (    direction = test_dirs[best_kick];) N
+(620) # (    target = test_targets[best_kick];) N
+(621) # (    ) S
+(if) K
+( \(ret == 0\) {) p n
+(622) # (      ret = 2;) N
+(623) # (    }) N
+(624) # () N
+(625) # (  }) N
+(626) # () N
+(627) # (  kick_vel.init_polar\(test_vels_multi[best_kick], test_dirs[best_kick]\);) N
+(628) # (  LOG_DAN\(0, << ") S
+(selected kick nr. ) str
+(" << best_kick << ") p
+( as best kick) str
+("\);) p n
+(629) # () N
+(630) # (  LOG_DAN\(0, << _2D << L2D\( ball_pos.x, ball_pos.y, ball_pos.x + kick_vel.x * 3.0, ) N
+(631) # () S 8 T () S 16 T () S 24 T (    ball_pos.y + kick_vel.y * 3.0, ") S
+(ffffff) str
+(" \)\);    ) p n
+(632) # (  LOG_DAN\(0, << ") S
+(return value is ) str
+(" << ret\);) p n
+(633) # (  best_index = best_kick;) N
+(634) # (  ) S
+(return) K
+( ret;) p n
+(635) # (}) N
+(636) # () N
+(637) # () S
+(void) k
+( Score::fill_velocity_arrays\(Value *test_vels_1step, Value *test_vels_multi, ) p n
+(638) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T ( Vector *test_targets, ) S
+(int) k
+( nr_of_targets\) ) p n
+0 T ({) N
+(639) # (  Value one_step_vel, multi_step_vel;) N
+(640) # () N
+(641) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < nr_of_targets; ++i\) {) p n
+(642) # (    ) S
+(//Move_1or2_Step_Kick::get_vel_in_dir\(3.0, test_dirs[i], one_step_vel, multi_step_vel\)) c n
+0 T (;) N
+(643) # () S
+(    ) p
+(//oneortwo->get_vel_in_dir\(3.0, test_dirs[i], one_step_vel, multi_step_vel\);) c n
+(644) # () S
+(    ) p
+(//oneortwo->get_vel_in_dir\(3.0, test_dirs[i], one_step_vel, multi_step_vel\);) c n
+(645) # () N
+(646) # () S
+(    ) p
+(//oneortwo->kick_in_dir_with_max_vel\(ANGLE\(test_dirs[i]\)\);) c n
+(647) # () S
+(    oneortwo->kick_to_pos_with_max_vel\(test_targets[i]\);) p n
+(648) # (    oneortwo->get_vel\(one_step_vel, multi_step_vel\);) N
+(649) # (    ) S
+(//oneortwo->get_vel\(one_step_vel, multi_step_vel\);) c n
+(score_bms.c) (Page 9/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(650) # () p n
+(651) # () N
+(652) # (    ) S
+(//if \(one_step_vel > ServerOptions::ball_speed_max * ServerOptions::ball_decay\)) c n
+(653) # () S
+(    ) p
+(if) K
+( \(one_step_vel > ServerOptions::ball_speed_max\)) p n
+(654) # (      one_step_vel = ServerOptions::ball_speed_max;) N
+(655) # (    ) S
+(//if \(multi_step_vel > ServerOptions::ball_speed_max * ServerOptions::ball_decay\)) c n
+(656) # () S
+(    ) p
+(if) K
+( \(multi_step_vel > ServerOptions::ball_speed_max\)) p n
+(657) # (      multi_step_vel = ServerOptions::ball_speed_max;) N
+(658) # () N
+(659) # (    ) S
+(if) K
+( \(multi_step_vel < one_step_vel\) {) p n
+(660) # (      LOG_DAN\(0, << ") S
+(ERROR!!!! multi_step_vel smaller than one_step_vel!) str
+("\);) p n
+(661) # (    }) N
+(662) # () N
+(663) # (    test_vels_1step[i] = one_step_vel;) N
+(664) # (    test_vels_multi[i] = multi_step_vel;  ) N
+(665) # (    ) S
+(//test_vels_multi[i] = 2.5;) c n
+(666) # () S
+(  }) p n
+(667) # () N
+(668) # (}) N
+(669) # () N
+(670) # () N
+(671) # () S
+(void) k
+( Score::fill_target_arrays\(Vector *test_targets, Value *test_dirs, ) p n
+(672) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (       ) S
+(int) k
+( nr_of_targets, Vector ball_pos\) {) p n
+(673) # () N
+(674) # (  Vector upper_corner = Vector\(ServerOptions::pitch_length/2.0, ServerOptions::goal_width/) N
+0 T (2.0\);) N
+(675) # (  Vector lower_corner = Vector\(upper_corner.x, -upper_corner.y\);) N
+(676) # () N
+(677) # () N
+(678) # (  Value ang_diff = Tools::get_angle_between_null_2PI\( \(upper_corner-WSinfo::ball->pos\).arg) N
+0 T (\(\) - ) N
+(679) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (      \(lower_corner-WSinfo::ball->pos\).arg) N
+0 T (\(\) \);) N
+(680) # () N
+(681) # (  Value safety_threshold = DEG2RAD\(3.0\);) N
+(682) # (  LOG_DAN\(0, ") S
+(ang_diff ist ) str
+(" << RAD2DEG\(ang_diff\)\);) p n
+(683) # (  ) S
+(if) K
+( \(\(ball_pos.x > 25.0\) && \(ang_diff < DEG2RAD\(10.0\)\)\) {) p n
+(684) # (    safety_threshold = ang_diff / 6.0;) N
+(685) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(ang_diff < DEG2RAD\(8.0\)\) {) p n
+(686) # (    safety_threshold = ang_diff/8.0;) N
+(687) # (  }) N
+(688) # () N
+(689) # (  Value delta_ang = Tools::get_angle_between_null_2PI\(ang_diff - 2.0*safety_threshold\) / 6) N
+0 T (.0; ) N
+(690) # (  ) N
+(691) # (  Value upper_secure_arg = Tools::get_angle_between_null_2PI\(\(upper_corner-WSinfo::ball->p) N
+0 T (os\).arg\(\) - ) N
+(692) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S 56 T (     safety_threshold\);) N
+(693) # () N
+(694) # (  ) S
+(//LOG_DAN\(0, << "upper secure arg is " << upper_secure_arg\);) c n
+(695) # () N
+(696) # () S
+(  test_dirs[0] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 3.0\);) p n
+(697) # (  test_dirs[1] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 2.0\);) N
+(698) # (  test_dirs[2] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 4.0\);) N
+(699) # (  test_dirs[3] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 1.0\);) N
+(700) # (  test_dirs[4] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 5.0\);) N
+(701) # (  test_dirs[7] = Tools::get_angle_between_null_2PI\(upper_secure_arg\);) N
+(702) # (  test_dirs[8] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 6.0\);) N
+(703) # (  ) N
+(704) # (  ) S
+(if) K
+( \(delta_ang > DEG2RAD\(4.0\)\) {) p n
+(705) # (    test_dirs[5] = Tools::get_angle_between_null_2PI\(upper_secure_arg - DEG2RAD\(2.0\)\);) N
+(706) # (    test_dirs[6] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 6.0 + ) N
+0 T (DEG2RAD\(2.0\)\);) N
+(707) # (  } ) S
+(else) K
+( {) p n
+(708) # (    test_dirs[5] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang/2.0\);) N
+(709) # (    test_dirs[6] = Tools::get_angle_between_null_2PI\(upper_secure_arg - delta_ang * 6.0 + ) N
+0 T (delta_ang/2.0\);) N
+(710) # (  }) N
+(711) # () N
+(712) # (  Vector st;) N
+(713) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < nr_of_targets; ++i\) {) p n
+(714) # (    st.init_polar\(1.0, test_dirs[i]\);) N
+(715) # (    st = \(1.0/st.x\) * st;) N
+(716) # (    ) S
+(//st /= \(st.x\); DAS IST FALSCH\(geht so nicht, siehe Implementuerung von Vector) c n
+(score_bms.c) (Page 10/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (5/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (11-12) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(717) # () p n
+(718) # (    test_targets[i] = \(ServerOptions::pitch_length/2.0 - WSinfo::ball->pos.x\) * st + WSinf) N
+0 T (o::ball->pos;) N
+(719) # (  }) N
+(720) # () N
+(721) # (}) N
+(722) # () N
+(723) # () N
+(724) # () S
+(void) k
+( Score::consider_special_cases\() p
+(int) k
+( goalie_age, ) p
+(int) k
+( goalie_vel_age, Vector goalie_vel,) p n
+(725) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (   Value &goalie_initial_size, Vector &goa) N
+0 T (lie_pos, ) N
+(726) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T (   PPlayer goalie\) {) N
+(727) # (  ) S
+(if) K
+( \(goalie_vel_age == 0\) {) p n
+(728) # (    ) S
+(//if \(goalie_vel.norm\(\) > 0.1\) {) c n
+(729) # () S
+(    LOG_DAN\(0, << ") p
+(goalie_pos um ) str
+(" << goalie_vel << ") p
+(verschoben) str
+("\);) p n
+(730) # (    goalie_pos = goalie_pos + goalie_vel;) N
+(731) # (    ) S
+(//if \(goalie_initial_size >= 0.3\) goalie_initial_size -= 0.3;) c n
+(732) # () S
+(    ) p
+(//else goalie_initial_size = 0.0;) c n
+(733) # () S
+(    ) p
+(//}) c n
+(734) # () S
+(  }) p n
+(735) # () N
+(736) # (  ) S
+(if) K
+( \(fabs\(WSinfo::ball->vel.y\) > 1.0\) {) p n
+(737) # (    LOG_DAN\(0, << ") S
+(ball has high y-velocity, assume that goalie moves!) str
+("\);) p n
+(738) # (    goalie_initial_size += 0.4;) N
+(739) # (  }) N
+(740) # () N
+(741) # () S
+(#if) K
+( 0 ) p
+(// ridi goalshot) c n
+(742) # () S
+(  ) p
+(if) K
+( \(goalie_age <= 1\) {) p n
+(743) # (    ) S
+(if) K
+( \(\(goalie_pos - WSinfo::me->pos\).norm\(\) < 5.0\) {) p n
+(744) # (      LOG_DAN\(0, << ") S
+( goalie too close, reducing size to 0) str
+("\);) p n
+(745) # (      goalie_initial_size = 0.0;) N
+(746) # (    }) N
+(747) # (  }) N
+(748) # () S
+(#endif) K
+( ) p n
+(749) # (}) N
+(750) # () N
+(751) # () N
+(752) # () S
+(int) k
+( Score::select_best_kick\() p
+(int) k
+( *kick_possible, ) p
+(int) k
+( nr_of_targets\) {) p n
+(753) # (  ) S
+(int) k
+( all_possible = 1;) p n
+(754) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < nr_of_targets; ++i\) {) p n
+(755) # (    ) S
+(if) K
+( \(kick_possible[i] == 0\) {) p n
+(756) # (      all_possible = 0;) N
+(757) # (      ) S
+(break) K
+(;) p n
+(758) # (    }) N
+(759) # (  }) N
+(760) # (  ) S
+(if) K
+( \(all_possible\) ) p
+(return) K
+( 0;) p n
+(761) # (  ) N
+(762) # (  ) S
+(int) k
+( left_side = 0, right_side = 0;) p n
+(763) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 1; i < nr_of_targets; ++i\) {) p n
+(764) # (    ) S
+(if) K
+( \(kick_possible[i]\) {) p n
+(765) # (      ) S
+(if) K
+( \(i%2 == 1\) ++left_side;) p n
+(766) # (      ) S
+(else) K
+( right_side++;) p n
+(767) # (    }) N
+(768) # (  }) N
+(769) # () N
+(770) # (  ) S
+(if) K
+( \(left_side == right_side\) {) p n
+(771) # (    ) S
+(if) K
+( \(WSinfo::ws->time % 2 == 0\) {) p n
+(772) # (      ++right_side;) N
+(773) # (    } ) S
+(else) K
+( {) p n
+(774) # (      ++left_side;) N
+(775) # (    }) N
+(776) # (  }) N
+(777) # () N
+(778) # (  ) S
+(if) K
+( \(left_side > right_side\) {) p n
+(779) # (    ) S
+(if) K
+( \(kick_possible[1] && kick_possible[3]\) ) p
+(return) K
+( 3;) p n
+(780) # (    ) S
+(if) K
+( \(kick_possible[5]\) ) p
+(return) K
+( 5;) p n
+(781) # (    ) S
+(else) K
+( {) p n
+(782) # (      ) S
+(for) K
+( \() p
+(int) k
+( j = 0; j < nr_of_targets; ++j\) {) p n
+(783) # () S 8 T () S
+(if) K
+( \(\(kick_possible[j]\) && \(j%2 == 1\)\) ) p
+(return) K
+( j;) p n
+(784) # (      }) N
+(785) # (    }) N
+(786) # (  } ) S
+(else) K
+( ) p
+(if) K
+( \(left_side < right_side\) {) p n
+(787) # (    ) S
+(if) K
+( \(kick_possible[2] && kick_possible[4]\) ) p
+(return) K
+( 4;) p n
+(788) # (    ) S
+(if) K
+( \(kick_possible[6]\) ) p
+(return) K
+( 6;) p n
+(score_bms.c) (Page 11/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(789) # (    ) p
+(else) K
+( {) p n
+(790) # (      ) S
+(for) K
+( \() p
+(int) k
+( j = 0; j < nr_of_targets; ++j\) {) p n
+(791) # () S 8 T () S
+(if) K
+( \(\(kick_possible[j]\) && \(j%2 == 0\)\) ) p
+(return) K
+( j;) p n
+(792) # (      }) N
+(793) # (    }) N
+(794) # (  }) N
+(795) # () N
+(796) # (  ) S
+(return) K
+( -1;) p n
+(797) # (}) N
+(798) # () N
+(799) # (Value Score::player_action_radius_at_time\() S
+(int) k
+( time, PPlayer player, ) p n
+(800) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S 56 T (  Value player_dist_to_ball, ) N
+(801) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T () S 56 T (  ) S
+(int) k
+( player_handicap\) {) p n
+(802) # (  ) S
+(//used for learning, otherwise players try to shoot through static defenders) c n
+(803) # () S
+(  ) p
+(return) K
+( 1.1;) p n
+(804) # () N
+(805) # (  ) S
+(int) k
+( time_L = time - player_handicap;) p n
+(806) # () N
+(807) # (  ) S
+(if) K
+( \(player_dist_to_ball < 3.0\) {) p n
+(808) # (    ) S
+(if) K
+( \(time_L <= 2\) {) p n
+(809) # (      ) S
+(return) K
+( 0.0 + player->kick_radius;) p n
+(810) # (    } ) S
+(else) K
+( {) p n
+(811) # (      ) S
+(return) K
+( player->speed_max * \(time_L-2\) * 0.8 + player->kick_radius;) p n
+(812) # (    }) N
+(813) # (  } ) S
+(else) K
+( {) p n
+(814) # (    ) S
+(if) K
+( \(time_L <= 1\) {) p n
+(815) # (      ) S
+(return) K
+( 0.0 + player->kick_radius;) p n
+(816) # (    } ) S
+(else) K
+( {) p n
+(817) # (      ) S
+(return) K
+( player->speed_max * \(time_L-1\) * 0.8 + player->kick_radius;) p n
+(818) # (    }) N
+(819) # (  }) N
+(820) # (}) N
+(821) # () N
+(822) # () S
+(int) k
+( Score::intercept_opponents\(Value direction, Value b_v, ) p n
+(823) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (       ) S
+(int) k
+( max_steps\) {) p n
+(824) # (  WSpset pset = WSinfo::valid_opponents;) N
+(825) # (  pset.keep_players_in_cone\(WSinfo::ball->pos, ANGLE\(direction-DEG2RAD\(20\)\), ) N
+(826) # () S 8 T () S 16 T () S 24 T (    ANGLE\(direction+DEG2RAD\(20\)\)\);) N
+(827) # (  Vector player_pos, b_pos, b_vel, ball_vel;) N
+(828) # (  Value player_dist_to_ball, player_action_radius;) N
+(829) # (  ball_vel.init_polar\(b_v, direction\);) N
+(830) # () N
+(831) # () N
+(832) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 0; i < pset.num; ++i\) {) p n
+(833) # (    ) S
+(if) K
+( \(pset[i]->number == WSinfo::ws->his_goalie_number\) ) p
+(continue) K
+(;) p n
+(834) # (    player_pos = pset[i]->pos;) N
+(835) # (    b_pos = WSinfo::ball->pos;) N
+(836) # (    b_vel = ball_vel;) N
+(837) # (    player_dist_to_ball = \(pset[i]->pos - WSinfo::ball->pos\).norm\(\);) N
+(838) # () N
+(839) # (    ) S
+(for) K
+( \() p
+(int) k
+( j = 1; j < 12; ++j\) {) p n
+(840) # (      b_pos += b_vel;) N
+(841) # (      b_vel *= ServerOptions::ball_decay;) N
+(842) # (      player_action_radius = player_action_radius_at_time\(j, pset[i], player_dist_to_ball,) N
+0 T ( 0\);) S
+(//0.4) c n
+(843) # () S
+(      ) p n
+(844) # (      ) S
+(if) K
+( \(\(b_pos - player_pos\).norm\(\) < player_action_radius\) {) p n
+(845) # () S 8 T () S
+(if) K
+( \(pset[i]->number > 0\) ) p
+(return) K
+( pset[i]->number;) p n
+(846) # () S 8 T () S
+(else) K
+( ) p
+(return) K
+( 1;) p n
+(847) # (      }) N
+(848) # (    }) N
+(849) # (  }) N
+(850) # (  ) S
+(return) K
+( 0;) p n
+(851) # (}) N
+(852) # () N
+(853) # (Value Score::goalie_action_radius_at_time\() S
+(int) k
+( time, Value goalie_size, ) p
+(int) k
+( goalie_handicap) p n
+0 T (\) {) N
+(854) # (  ) S
+(int) k
+( time_L = time - goalie_handicap;) p n
+(855) # () N
+(856) # (  ) S
+(if) K
+( \(time_L < 0\) ) p
+(return) K
+( 0.0;) p n
+(857) # (  ) S
+(switch) K
+( \(time_L\) {) p n
+(858) # (  ) S
+(case) K
+( 0: ) p n
+(859) # (    ) S
+(return) K
+( 0.0;) p n
+(860) # (  ) S
+(case) K
+( 1:) p n
+(score_bms.c) (Page 12/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (6/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (13-14) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(861) # (    ) p
+(return) K
+( goalie_size;) p n
+(862) # (  ) S
+(case) K
+( 2:) p n
+(863) # (    ) S
+(return) K
+( 0.6 + goalie_size;) p n
+(864) # (  ) S
+(case) K
+( 3:) p n
+(865) # (    ) S
+(return) K
+( 1.4 + goalie_size;) p n
+(866) # (  ) S
+(case) K
+( 4:) p n
+(867) # (    ) S
+(return) K
+( 2.4 + goalie_size;) p n
+(868) # (  ) S
+(default) K
+(:) p n
+(869) # (    ) S
+(if) K
+( \(time_L < 0\) ) p
+(return) K
+( 0.0;) p n
+(870) # (    ) S
+(else) K
+( ) p
+(return) K
+( 2.4 + 1.0 * \(time_L - 4\) + goalie_size;) p n
+(871) # (  }) N
+(872) # (  ) N
+(873) # (}) N
+(874) # () N
+(875) # () N
+(876) # () S
+(/* Berechnet den Schnittpunkt zweier Geraden */) c n
+(877) # () S
+(Vector Score::intersection_point\(Vector p1, Vector steigung1, ) p n
+(878) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T () S 48 T ( Vector p2, Vector steigung2\) {) N
+(879) # (  ) S
+(double) k
+( x, y, m1, m2;) p n
+(880) # (  ) S
+(if) K
+( \(\(steigung1.x == 0\) || \(steigung2.x == 0\)\) {) p n
+(881) # (    ) S
+(if) K
+( \(fabs\(steigung1.x\) < 0.00001\) {) p n
+(882) # (      ) S
+(return) K
+( point_on_line\(steigung2, p2, p1.x\);) p n
+(883) # (    } ) S
+(else) K
+( ) p
+(if) K
+( \(fabs\(steigung1.x\) < 0.00001\) {) p n
+(884) # (      ) S
+(return) K
+( point_on_line\(steigung1, p1, p2.x\);) p n
+(885) # (    } ) N
+(886) # (  }) N
+(887) # (  m1 = steigung1.y/steigung1.x;) N
+(888) # (  m2 = steigung2.y/steigung2.x;) N
+(889) # (  ) S
+(if) K
+( \(m1 == m2\) ) p
+(return) K
+( Vector\(-51.5, 0\);) p n
+(890) # (  x = \(p2.y - p1.y + p1.x*m1 - p2.x*m2\) / \(m1-m2\);) N
+(891) # (  y = \(x-p1.x\)*m1 + p1.y;) N
+(892) # (  ) S
+(return) K
+( Vector \(x, y\);) p n
+(893) # () N
+(894) # (}) N
+(895) # () N
+(896) # () N
+(897) # () S
+(/* Berechnet die y-Koordinate Punktes auf der Linie, der die x-Koordinate x hat) c n
+(898) # ( */) N
+(899) # () S
+(Vector Score::point_on_line\(Vector steigung, Vector line_point, Value x\) {) p n
+(900) # (  ) S
+(//steigung.normalize\(\);) c n
+(901) # () S
+(  steigung = \(1.0/steigung.x\) * steigung;) p n
+(902) # (  ) S
+(if) K
+( \(steigung.x > 0\) {) p n
+(903) # (    ) S
+(return) K
+( \(x - line_point.x\) * steigung + line_point;  ) p n
+(904) # (  }) N
+(905) # (  ) S
+(if) K
+( \(steigung.x < 0\) {) p n
+(906) # (    ) S
+(return) K
+( \(line_point.x - x\) * steigung + line_point;  ) p n
+(907) # (  }  ) S
+(// Zur Sicherheit, duerfte aber nie eintreten) c n
+(908) # () S
+(  ) p
+(return) K
+( line_point;) p n
+(909) # (} ) S
+(/* point_on_line */) c n
+(910) # () N
+(911) # () N
+(912) # () S
+(int) k
+( Score::intercept_goalie\(Vector ball_pos, Vector ball_vel, Vector goalie_pos, ) p n
+(913) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (      Value goalie_size\) {) N
+(914) # (  ) S
+(if) K
+( \(ball_vel.x < 0.0\) ) p
+(return) K
+( 1;) p n
+(915) # (  ) S
+(if) K
+( \(ball_vel.norm\(\) < 0.5\) ) p
+(return) K
+( 1;) p n
+(916) # (  ) N
+(917) # (  LOG_DAN\(0, << ") S
+(goalie_initial_size ist ) str
+(" << goalshot_param1\);) p n
+(918) # () N
+(919) # (  Vector b_pos = ball_pos;) N
+(920) # (  Vector b_vel = ball_vel;) N
+(921) # (  Value goal_x = ServerOptions::pitch_length/2.0;) N
+(922) # () N
+(923) # (  Value goalie_action_radius;) N
+(924) # () N
+(925) # (  ) S
+(int) k
+( time = 1;) p n
+(926) # (  bool wrong_angle = false;) N
+(927) # () N
+(928) # (  ) S
+(for) K
+( \() p
+(int) k
+( i = 1; i < 50; ++i\) {) p n
+(929) # (    b_pos += b_vel;) N
+(930) # (    b_vel *= ServerOptions::ball_decay;) N
+(931) # (    goalie_action_radius = goalie_action_radius_at_time\(time, goalie_size, 0\);) S
+(//0.4) c n
+(932) # () S
+(    ) p
+(if) K
+( \(wrong_angle\) goalie_action_radius -= 0.3;) p n
+(933) # (    ) N
+(934) # (    ) S
+(//LOG_DAN\(0, << _2D << C2D\(goalie_pos.x, goalie_pos.y, goalie_action_radius + 2.0, "#0) c n
+(score_bms.c) (Page 13/15) (Apr 15, 05 17:26) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (000ff"\)\);) c n
+(935) # () S
+(    ) p
+(//LOG_DAN\(0, << _2D << C2D\(b_pos.x, b_pos.y, 1, "00ff00"\)\);) c n
+(936) # () S
+(    ) p n
+(937) # (    ) S
+(if) K
+( \(b_pos.x > goal_x + 0.3\) {) p n
+(938) # (      ) S
+(//LOG_DAN\(0, << "time is " << time\);) c n
+(939) # () S
+(      ) p
+(return) K
+( -time;) p n
+(940) # () N
+(941) # (    } ) S
+(else) K
+( ) p
+(if) K
+( \(\(\(b_pos - goalie_pos\).norm\(\) - goalie_action_radius < 2.0\) && wrong_angle\) ) p n
+0 T ({) S
+(//\(time != i\)\) {) c n
+(942) # () S
+(      ) p
+(return) K
+( 1;) p n
+(943) # (    } ) S
+(else) K
+( ) p
+(if) K
+( \(\(\(b_pos - goalie_pos\).norm\(\) - goalie_action_radius < 2.0\) && !wrong_angle\)) p n
+0 T ( {) S
+(//\(time == i\)\) {) c n
+(944) # () S
+(      ) p
+(if) K
+( \(goalie_needs_turn_for_intercept\(time, ball_pos, ball_vel, b_pos, b_vel, goalie_s) p n
+0 T (ize\)\) {) N
+(945) # () S 8 T () S
+(//time--;) c n
+(946) # () S
+() p 8 T (wrong_angle = true;) N
+(947) # (      } ) S
+(else) K
+( ) p
+(return) K
+( 1;) p n
+(948) # (    }) N
+(949) # (    ++time;) N
+(950) # (  }) N
+(951) # (  ) S
+(return) K
+( 1;) p n
+(952) # (}) N
+(953) # () N
+(954) # (bool Score::goalie_needs_turn_for_intercept\() S
+(int) k
+( time, Vector initial_ball_pos, Vector init) p n
+0 T (ial_ball_vel, ) N
+(955) # () S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (      Vector b_pos, Vector b_vel, Value goalie_siz) N
+0 T (e\) {) N
+(956) # (  ) S
+(//test if goalie has a bad angle for the intercept) c n
+(957) # () S
+(#if) K
+( 0 ) p
+(// ridi 22.6.03 : replaced by new access to goalie) c n
+(958) # () S
+(  WSpset alive_opps = WSinfo::alive_opponents;) p n
+(959) # (  PPlayer goalie = alive_opps.get_player_by_number\(WSinfo::ws->his_goalie_number\);) N
+(960) # () S
+(#endif) K n
+(961) # () S
+(  PPlayer goalie =WSinfo::his_goalie;) p n
+(962) # () N
+(963) # () N
+(964) # (  ) S
+(if) K
+( \(goalie == ) p
+(NULL) K
+(\) ) p
+(return) K
+( 0;) p n
+(965) # (  ) S
+(if) K
+( \(goalie->age > 1\) ) p
+(return) K
+( 0;) p n
+(966) # (  ) N
+(967) # (  Vector goalie_ang;) N
+(968) # (  goalie_ang.init_polar\(1.0, goalie->ang\);) N
+(969) # (  ) N
+(970) # (  Vector intersection = intersection_point\(goalie->pos, goalie_ang, initial_ball_pos, init) N
+0 T (ial_ball_vel\);) N
+(971) # (  LOG_DAN\(0, << _2D << C2D\(intersection.x, intersection.y, 1, ") S
+(ff0000) str
+("\)\);) p n
+(972) # (  ) N
+(973) # (  ) S
+(//ridi: not used: Vector op_to_intersection = intersection - initial_ball_pos;) c n
+(974) # () S
+(      ) p n
+(975) # (  Value dist = \(intersection-initial_ball_pos\).norm\(\);) N
+(976) # (  Vector ball_in_goal = Vector\(point_on_line\(initial_ball_vel, initial_ball_pos,ServerOpti) N
+0 T (ons::pitch_length/2.0\)\);) N
+(977) # (  ) S
+(//LOG_DAN\(0, "Ball ueberschreitet Torlinie an " << ball_in_goal.x << " " << ball_in_goal) c n
+0 T (.y\);) N
+(978) # () S
+(  ) p
+(if) K
+( \(dist - 2.0 > \(ball_in_goal - initial_ball_pos\).norm\(\) &&) p n
+(979) # (      \(\(b_pos - goalie->pos\).norm\(\) > 2.5\)\) {) N
+(980) # (    LOG_DAN\(0, ") S
+(Schnittpunkt zu weit entfernt!) str
+("\);) p n
+(981) # (    ) S
+(return) K
+( 1;) p n
+(982) # (    ) S
+(//--time;) c n
+(983) # () S
+(  } ) p
+(else) K
+( {) p n
+(984) # (    ) N
+(985) # (    ) S
+(int) k
+( time_L = time;) p n
+(986) # (    Vector b_pos_L = b_pos;) N
+(987) # (    Vector b_vel_L = b_vel;) N
+(988) # (    ) N
+(989) # (    ) S
+(for) K
+( \() p
+(int) k
+( j = 0; j < 10; ++j\) {) p n
+(990) # (      ) S
+(if) K
+( \(\(b_pos_L - initial_ball_pos\).norm\(\) > dist - 2.0\) {) p n
+(991) # () S 8 T (Value goalie_rad = goalie_action_radius_at_time\(time_L, goalie_size, 0\);) N
+(992) # () S 8 T (Value goalie_rad2 = goalie_action_radius_at_time\(time_L+1, goalie_size, 0\);) N
+(993) # () S 8 T (Vector g_pos = intersection-goalie->pos;) N
+(994) # () S 8 T (Vector g_pos2 = g_pos;) N
+(995) # () S 8 T (g_pos.normalize\(goalie_rad\);) N
+(996) # () S 8 T (g_pos += goalie->pos;) N
+(997) # () S 8 T () N
+(998) # () S 8 T (g_pos2.normalize\(goalie_rad2\);) N
+(999) # () S 8 T (g_pos2 += goalie->pos;) N
+(score_bms.c) (Page 14/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (7/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (15) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(1000) # () p 8 T () N
+(1001) # () S 8 T (LOG_DAN\(0, << _2D << C2D\(b_pos_L.x, b_pos_L.y, 1, ") S
+(ff00ff) str
+("\)\);) p n
+(1002) # () S 8 T () S
+(if) K
+( \(\(goalie_rad + 2.0 < \(intersection-goalie->pos\).norm\(\)\) &&) p n
+(1003) # () S 8 T (    !is_pos_in_quadrangle\(b_pos_L, goalie->pos, g_pos, 4.0\) &&) N
+(1004) # () S 8 T (    \(b_pos_L.distance\(g_pos\) > 2.2\) &&) N
+(1005) # () S 8 T (    !is_pos_in_quadrangle\(b_pos_L+b_vel_L, goalie->pos, g_pos2, 4.0\) &&) N
+(1006) # () S 8 T (    \(b_pos_L.distance\(g_pos2\) > 2.2\) &&) N
+(1007) # () S 8 T (    \(\(b_pos-goalie->pos\).norm\(\) > 2.5\) &&) N
+(1008) # () S 8 T (    \(\(goalie_rad*\(intersection-goalie->pos\)+goalie->pos - b_pos_L\).norm\(\) > 2.5\)\) ) N
+0 T ({) N
+(1009) # () S 8 T (  LOG_DAN\(0, << ") S
+(goalie has bad angle for intercept => needs one extra step) str
+("\);) p n
+(1010) # () S 8 T (  LOG_DAN\(0, << _2D << C2D\(g_pos.x, g_pos.y, 1, ") S
+(ffff00) str
+("\)\);) p n
+(1011) # () S 8 T (  ) S
+(//--time;) c n
+(1012) # () S
+() p 8 T (  ) S
+(return) K
+( 1;) p n
+(1013) # () S 8 T (  ) S
+(//break;) c n
+(1014) # () S
+() p 8 T (} ) S
+(else) K
+( ) p
+(return) K
+( 0;) p n
+(1015) # (      } ) N
+(1016) # (      ) N
+(1017) # (      b_pos_L += b_vel_L;) N
+(1018) # (      b_vel_L *= ServerOptions::ball_decay;) N
+(1019) # (      ++time_L;) N
+(1020) # (    }) N
+(1021) # (    ) S
+(return) K
+( 0;) p n
+(1022) # (  }) N
+(1023) # (}) N
+(1024) # () N
+(1025) # () N
+(1026) # (bool Score::is_pos_in_quadrangle\(Vector pos, Vector p1, Vector p2, Vector p3, Vector p4\) {) N
+(1027) # (  ) S
+(if) K
+( \( Tools::point_in_triangle\(pos, p1,p2,p3\) ||) p n
+(1028) # (       Tools::point_in_triangle\(pos, p1,p3,p4\) \) { ) N
+(1029) # (    ) S
+(return) K
+( true;) p n
+(1030) # (    }) N
+(1031) # (  ) S
+(return) K
+( false;) p n
+(1032) # (}) N
+(1033) # () N
+(1034) # (bool Score::is_pos_in_quadrangle\(Vector pos, Vector p1, Vector p2, Value width\) {) N
+(1035) # (  Vector tmp= p2-p1;) N
+(1036) # (  Vector norm;) N
+(1037) # (  norm.x= -tmp.y;) N
+(1038) # (  norm.y= tmp.x;) N
+(1039) # (  norm.normalize\(0.5*width\);) N
+(1040) # (  Vector g1= p1+ norm;) N
+(1041) # (  Vector g2= p1- norm;) N
+(1042) # (  Vector g3= p2- norm;) N
+(1043) # (  Vector g4= p2+ norm;) N
+(1044) # () N
+(1045) # (  ) S
+(return) K
+( is_pos_in_quadrangle\(pos,g1,g2,g3,g4\);) p n
+(1046) # (}) N
+(1047) # () N
+(score_bms.c) (Page 15/15) (Apr 15, 05 17:26) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(score_bms.c) (8/8) (Monday July 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

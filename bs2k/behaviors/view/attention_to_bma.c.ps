@@ -1,0 +1,1398 @@
+%!PS-Adobe-3.0
+%%Title: attention_to_bma.c
+%%For: Thomas Gabel
+%%Creator: a2ps version 4.13
+%%CreationDate: Mon Apr  4 10:51:07 2005
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 2
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontType get 0 eq {
+    currentfont /FontMatrix get 3 get
+  }{
+    currentfont /FontMatrix get 3 get 1000 mul
+  } ifelse
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Define these in case they're not in the FontInfo (also, here
+    % they're easier to get to.
+    /UnderlinePosition 1 def
+    /UnderlineThickness 1 def
+    
+    % Get the underline position and thickness if they're defined.
+    currentdict /FontInfo known {
+      FontInfo
+      
+      dup /UnderlinePosition known {
+	dup /UnderlinePosition get
+	0 exch FontMatrix transform exch pop
+	/UnderlinePosition exch def
+      } if
+      
+      dup /UnderlineThickness known {
+	/UnderlineThickness get
+	0 exch FontMatrix transform exch pop
+	/UnderlineThickness exch def
+      } if
+      
+    } if
+    currentdict 
+  end 
+} bind def
+
+% composite fonts for ASCII-EUC mixed strings
+% Version 1.2 1/31/1990
+% Original Ken'ichi HANDA (handa@etl.go.jp)
+% Modified Norio Katayama (katayama@rd.nacsis.ac.jp),1998
+% Extend & Fix Koji Nakamaru (maru@on.cs.keio.ac.jp), 1999
+% Anyone can freely copy, modify, distribute this program.
+
+/copyfont {	% font-dic extra-entry-count  copyfont  font-dic
+	1 index maxlength add dict begin
+	{	1 index /FID ne 2 index /UniqueID ne and
+		{def} {pop pop} ifelse
+	} forall
+	currentdict
+	end
+} bind def
+
+/compositefont { % ASCIIFontName EUCFontName RomanScale RomanOffset Rot(T/F) compositefont font
+    /RomanRotation exch def
+    /RomanOffset exch def
+    /RomanScale exch def
+    userdict /fixeucfont_dict known not {
+	userdict begin
+	    /fixeucfont_dict 2 dict begin
+		/UpperByteEncoding [
+		    16#00 1 16#20 { pop 0 } for
+		    16#21 1 16#28 { 16#20 sub } for
+		    16#29 1 16#2F { pop 0 } for
+		    16#30 1 16#74 { 16#27 sub } for
+		    16#75 1 16#FF { pop 0 } for
+		] def
+	        /LowerByteEncoding [
+		    16#00 1 16#A0 { pop /.notdef } for
+		    16#A1 1 16#FE { 16#80 sub 16 2 string cvrs
+				    (cXX) dup 1 4 -1 roll
+				    putinterval cvn } for
+		    /.notdef
+		] def
+		currentdict
+	    end def
+	end
+    } if
+    findfont dup /FontType get 0 eq {
+	14 dict begin
+	    %
+	    % 7+8 bit EUC font
+	    %
+	    12 dict begin
+		/EUCFont exch def
+		/FontInfo (7+8 bit EUC font) readonly def
+		/PaintType 0 def
+		/FontType 0 def
+		/FontMatrix matrix def
+		% /FontName
+		/Encoding fixeucfont_dict /UpperByteEncoding get def
+		/FMapType 2 def
+		EUCFont /WMode known
+		{ EUCFont /WMode get /WMode exch def }
+		{ /WMode 0 def } ifelse
+		/FDepVector [
+		    EUCFont /FDepVector get 0 get
+		    [ 16#21 1 16#28 {} for 16#30 1 16#74 {} for ]
+		    {
+			13 dict begin
+			    /EUCFont EUCFont def
+			    /UpperByte exch 16#80 add def	
+			    % /FontName
+			    /FontInfo (EUC lower byte font) readonly def
+			    /PaintType 0 def
+			    /FontType 3 def
+			    /FontMatrix matrix def
+			    /FontBBox {0 0 0 0} def
+			    /Encoding
+				fixeucfont_dict /LowerByteEncoding get def
+			    % /UniqueID
+			    % /WMode
+			    /BuildChar {
+				gsave
+				exch dup /EUCFont get setfont
+				/UpperByte get
+				2 string
+				dup 0 4 -1 roll put
+				dup 1 4 -1 roll put
+				dup stringwidth setcharwidth
+				0 0 moveto show
+				grestore
+			    } bind def
+			    currentdict
+			end
+			/lowerbytefont exch definefont
+		    } forall
+		] def
+		currentdict
+	    end
+	    /eucfont exch definefont
+	    exch
+	    findfont 1 copyfont dup begin
+		RomanRotation {
+			/FontMatrix FontMatrix
+			[ 0 RomanScale neg RomanScale 0 RomanOffset neg 0 ]
+			matrix concatmatrix def
+		}{
+			/FontMatrix FontMatrix
+			[ RomanScale 0 0 RomanScale 0 RomanOffset ] matrix concatmatrix
+			def
+			/CDevProc
+			    {pop pop pop pop 0 exch -1000 exch 2 div 880} def
+		} ifelse
+	    end
+	    /asciifont exch definefont
+	    exch
+	    /FDepVector [ 4 2 roll ] def
+	    /FontType 0 def
+	    /WMode 0 def
+	    /FMapType 4 def
+	    /FontMatrix matrix def
+	    /Encoding [0 1] def
+	    /FontBBox {0 0 0 0} def
+%	    /FontHeight 1.0 def % XXXX
+	    /FontHeight RomanScale 1.0 ge { RomanScale }{ 1.0 } ifelse def
+	    /Descent -0.3 def   % XXXX
+	    currentdict
+	end
+	/tmpfont exch definefont
+	pop
+	/tmpfont findfont
+    }{
+	pop findfont 0 copyfont
+    } ifelse
+} def	
+
+/slantfont {	% FontName slant-degree  slantfont  font'
+    exch findfont 1 copyfont begin
+    [ 1 0 4 -1 roll 1 0 0 ] FontMatrix exch matrix concatmatrix
+    /FontMatrix exch def
+    currentdict
+    end
+} def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 595 def
+/sw 842 def
+/llx 24 def
+/urx 818 def
+/ury 571 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 6.760028 def
+/cw 4.056017 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 96.400000 mul
+def
+/ph
+   504.974083 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 5 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(1) # (#include) K
+( ") p
+(attention_to_bma.h) str
+(") p n
+(2) # () S
+(#include) K
+( ") p
+(intentiontype.h) str
+(") p n
+(3) # () S
+(#include) K
+( ") p
+(blackboard.h) str
+(") p n
+(4) # () S
+(#include) K
+( ") p
+(ws_info.h) str
+(") p n
+(5) # () S
+(#include) K
+( ") p
+(ws_memory.h) str
+(") p n
+(6) # () S
+(#include) K
+( ") p
+(../policy/positioning.h) str
+(") p n
+(7) # () N
+(8) # () S
+(#if) K
+( 0) p n
+(9) # () S
+(#define) K
+( MYLOG_POL\(LLL,XXX\) LOG_POL\(LLL,XXX\)) p n
+(10) # () S
+(//#define MYLOG_DRAW\(LLL,XXX\) LOG_POL\(LLL,<<_2D<<XXX\)) c n
+(11) # () S
+(#else) K n
+(12) # (#define) S
+( MYLOG_POL\(LLL,XXX\) ) p n
+(13) # () S
+(#define) K
+( MYLOG_DRAW\(LLL,XXX\)) p n
+(14) # () S
+(#endif) K n
+(15) # () N
+(16) # () S
+(bool AttentionTo::initialized = false;) p n
+(17) # () N
+(18) # (AttentionTo::AttentionTo\(\) {) N
+(19) # (}) N
+(20) # () N
+(21) # (bool AttentionTo::get_cmd\(Cmd &cmd\) {) N
+(22) # () N
+(23) # () N
+(24) # (  construct_say_message\(cmd\);) N
+(25) # (  set_attention_to\(cmd\);) N
+(26) # () N
+(27) # (  ) S
+(return) K
+( true;) p n
+(28) # (}) N
+(29) # () N
+(30) # () S
+(void) k
+( AttentionTo::set_attention_to\(Cmd & cmd\){) p n
+(31) # (  ) S
+(if) K
+( \(cmd.cmd_att.is_cmd_set\(\)\){) p n
+(32) # (    MYLOG_POL\(0, << ") S
+(ATTENTION TO:  CMD FORM ALREADY SET !!! ) str
+("\);) p n
+(33) # (    ) S
+(return) K
+(;) p n
+(34) # (  }) N
+(35) # () N
+(36) # (  Vector target;) N
+(37) # (  Value speed;) N
+(38) # (  ) S
+(int) k
+( target_player_number;) p n
+(39) # () N
+(40) # (  ) S
+(// attention of PASS PLAYER) c n
+(41) # () S
+(  ) p
+(if) K
+(\(Blackboard::get_pass_info\(WSinfo::ws->time, speed, target, target_player_number\) == t) p n
+0 T (rue\){) N
+(42) # (    ) S
+(if) K
+( \( target_player_number > 0 \){) p n
+(43) # (      MYLOG_POL\(0, << ") S
+(ATTENTION TO: Set attention to pass_receiver ) str
+("<<target_player_number\);) p n
+(44) # (      cmd.cmd_att.set_attentionto\(target_player_number\);) N
+(45) # (    }) N
+(46) # (    ) S
+(return) K
+(;) p n
+(47) # (  } ) S
+(// pass player) c n
+(48) # () N
+(49) # () S
+(  ) p
+(int) k
+(  new_att= 0;) p n
+(50) # (  Vector ballholder_pos;) N
+(51) # (  ) S
+(int) k
+( ballholder;) p n
+(52) # (  ) S
+(if) K
+(\(teammate_controls_ball\(ballholder, ballholder_pos\)\){) p
+(// I do not control the ball myse) c n
+0 T (lf and a teammate has the ball) N
+(53) # () S
+(    ) p
+(if) K
+(\(ballholder >0 && ballholder != WSinfo::me->number\)) p n
+(54) # (      new_att = ballholder;) N
+(55) # (    MYLOG_POL\(0, << ") S
+(ATTENTION TO: Set attention to ball holder ) str
+("<<ballholder\);) p n
+(56) # (  }) N
+(57) # () N
+(58) # (  ) S
+(// if someone plays a pass, keep attention to him!) c n
+(59) # () S
+(  PPlayer p= WSinfo::get_teammate_with_newest_pass_info\(\);) p n
+(60) # (  ) S
+(if) K
+( \( p \) {) p n
+(61) # (    new_att = p->number;) N
+(62) # (    MYLOG_POL\(0, << ") S
+(ATTENTION TO: Set attention to pass giver ) str
+("<<new_att\);) p n
+(63) # (  }) N
+(64) # () N
+(65) # (  MYLOG_POL\(0,<<") S
+(ATTENTION TO: Current Attention to is set to player ) str
+("<< WSinfo::ws->my_attentionto\);) p n
+(66) # () N
+(67) # (  ) S
+(if) K
+(\(new_att == 0\){) p
+(// not set yet) c n
+(68) # () N
+(69) # () S
+(    PPlayer teammate;) p n
+(70) # () N
+(71) # () S
+(#if) K
+( 1 ) p
+(// debug information only) c n
+(72) # () S
+(    ) p
+(for) K
+(\() p
+(int) k
+( i=0; i<WSinfo::num_relevant_teammates;i++\){) p n
+(attention_to_bma.c) (Page 1/4) (Jul 28, 04 13:58) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(73) # (      MYLOG_POL\(0,<<") p
+(ATTENTION 2: list of relevant teammates ) str
+("<<WSinfo::relevant_teammate[i]\);) p n
+(74) # (    }) N
+(75) # () S
+(#endif) K n
+(76) # () N
+(77) # () S
+(    ) p
+(for) K
+(\() p
+(int) k
+( i=0; i<WSinfo::num_relevant_teammates;i++\){) p n
+(78) # (      ) S
+(if) K
+(\(WSinfo::get_teammate\(WSinfo::relevant_teammate[i],teammate\)\){) p n
+(79) # () S 8 T (MYLOG_POL\(0,<<") S
+(ATTENTION 2: Checking relevant teammate ) str
+(") p n
+(80) # () S 8 T () S 16 T (<<teammate->number<<") S
+( age ) str
+("<<teammate->age\);) p n
+(81) # () S 8 T () S
+(if) K
+(\(new_att == 0 && teammate->age >1\){ ) p
+(// not yet found and too old) c n
+(82) # () S
+() p 8 T (  new_att = teammate->number;) N
+(83) # () S 8 T (}) N
+(84) # () S 8 T () S
+(if) K
+(\(teammate->age >3\){ ) p
+(// much too old -> emergency set attention) c n
+(85) # () S
+() p 8 T (  new_att = teammate->number;) N
+(86) # () S 8 T (  ) S
+(break) K
+(;) p n
+(87) # () S 8 T (}) N
+(88) # (      }) N
+(89) # (      ) S
+(else) K
+({ ) p
+(// strange: relevant teammate not found -> set attention to) c n
+(90) # () S
+() p 8 T (MYLOG_POL\(0,<<") S
+(ATTENTION 2: Teammate ) str
+("<<WSinfo::relevant_teammate[i]<<") p
+( not found. Set attent) str n
+0 T (ion) S
+("\);) p n
+(91) # () S 8 T (new_att =WSinfo::relevant_teammate[i];) N
+(92) # () S 8 T () S
+(break) K
+(; ) p
+(// quit loop) c n
+(93) # () S
+(      }) p n
+(94) # (    }) N
+(95) # (  }) N
+(96) # () N
+(97) # () N
+(98) # () N
+(99) # (  ) S
+(int) k
+( old_att= WSinfo::ws->my_attentionto;) p n
+(100) # (  ) S
+(if) K
+( \(old_att <= 0\)) p n
+(101) # (    old_att= 0;) N
+(102) # (  ) S
+(if) K
+( \(new_att <= 0\)) p n
+(103) # (    new_att= 0;) N
+(104) # () N
+(105) # (  ) S
+(if) K
+( \( old_att == new_att \) {) p n
+(106) # (    MYLOG_POL\(0,<<") S
+(ATTENTION TO: old attention = new attention: ) str
+("<<new_att\);) p n
+(107) # (    ) S
+(return) K
+(;) p n
+(108) # (  }) N
+(109) # () N
+(110) # () N
+(111) # (  ) S
+(if) K
+( \( new_att > 0 \) {) p n
+(112) # () S
+(#if) K
+( 0 ) p
+(// ridi: do not check this -> we want to listen to players, that we don' t see curre) c n
+0 T (ntly) N
+(113) # () S
+(    PPlayer p= WSinfo::get_teammate_by_number\(new_att\);) p n
+(114) # (    ) S
+(if) K
+( \( p && p->alive \){ ) p
+(//otherwise attentionto causes \(wrong command form\) messages) c n
+(115) # () S
+(#endif) K n
+(116) # () S
+(      cmd.cmd_att.set_attentionto\(new_att\);) p n
+(117) # (      MYLOG_POL\(0,<<") S
+(ATTENTION TO: Set Attention to player ) str
+("<<new_att\);) p n
+(118) # (      ) S
+(//    }) c n
+(119) # () S
+(  }) p n
+(120) # (  ) S
+(else) K
+({ ) p
+(// new_att <= 0;  this should not happen) c n
+(121) # () S
+(    cmd.cmd_att.set_attentionto_none\(\);) p n
+(122) # (    MYLOG_POL\(0,<<") S
+(ATTENTION TO: set NO attention -> CHECK!!!) str
+("\);) p n
+(123) # (  }) N
+(124) # (}) N
+(125) # () N
+(126) # () S
+(void) k
+( AttentionTo::construct_say_message\(Cmd & cmd\){) p n
+(127) # (  IntentionType intention;) N
+(128) # (  Vector target;) N
+(129) # (  Value speed,dir;) N
+(130) # (  ) S
+(int) k
+( target_player_number;) p n
+(131) # () N
+(132) # (  ) S
+(// Communication for GOALIE) c n
+(133) # () S
+(  ) p
+(if) K
+( \(ClientOptions::consider_goalie\) {) p n
+(134) # (    ) S
+(if) K
+( \(\(WSinfo::ball->age <= 4\) && \(WSinfo::ws->play_mode == PM_PlayOn\)\) {) p n
+(135) # (      cmd.cmd_say.set_ball\(WSinfo::ball->pos, WSinfo::ball->vel, WSinfo::ball->age, 4\);) N
+(136) # (      ) S
+(return) K
+(;) p n
+(137) # (    } ) N
+(138) # (  } ) S
+(// Goalie) c n
+(139) # () N
+(140) # () N
+(141) # () S
+(  ) p
+(// Communication for PASS PLAYER) c n
+(142) # () S
+(  ) p
+(if) K
+(\(Blackboard::get_pass_info\(WSinfo::ws->time, speed, target, target_player_number\) == t) p n
+0 T (rue\){) N
+(143) # (    MYLOG_POL\(0, << ") S
+(COMMUNICATION: Blackboard intention is PASS: to ) str
+("<<target_player_number<<") p
+( target ) str n
+(attention_to_bma.c) (Page 2/4) (Jul 28, 04 13:58) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(attention_to_bma.c) (1/2) (Monday April 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (pos ) str
+(") p n
+(144) # () S 8 T (    <<target<<") S
+( w. speed ) str
+("<<speed<<") p
+( -> Communicate) str
+("\);) p n
+(145) # (    ) S
+(int) k
+( cycles2go = 0; ) p
+(// communicate for one cycle only) c n
+(146) # () S
+(    Vector ballvel;) p n
+(147) # (    ballvel.init_polar\(speed,\(target - WSinfo::me->pos\).arg\(\)\);) N
+(148) # (    cmd.cmd_say.set_pass\(WSinfo::me->pos,ballvel,WSinfo::ws->time + cycles2go\);) N
+(149) # (    ) S
+(return) K
+(;) p n
+(150) # (  } ) S
+(// pass info was set) c n
+(151) # () N
+(152) # () S
+(  ) p
+(// Communication for PASS PLAYER, WHEN BALL JUST LEFT) c n
+(153) # () S
+(  ) p
+(if) K
+(\(WSinfo::is_ball_kickable\(\) == false && WSmemory::ball_was_kickable4me_at == WSinfo::w) p n
+0 T (s->time -1\){) N
+(154) # (    ) S
+(// I had the ball last time, so communicate where the ball is now) c n
+(155) # () S
+(    MYLOG_POL\(0, << ") p
+(Communicate: I had the ball last cycle, now I say where it goes ) str
+("\);) p n
+(156) # (    cmd.cmd_say.set_ball\(WSinfo::ball->pos, WSinfo::ball->vel, WSinfo::ball->age, WSinfo::) N
+0 T (ball->age \);) N
+(157) # (  }) N
+(158) # (  ) N
+(159) # (  ) S
+(// Communication for BALL HOLDER) c n
+(160) # () S
+(  ) p
+(if) K
+(\(WSinfo::is_ball_pos_valid\(\) && WSinfo::is_ball_kickable\(\)\){ ) p
+(// ball is kickable, but ) c n
+0 T (no pass info was set) N
+(161) # () S
+(    MYLOG_POL\(0, << ") p
+(COMMUNICATE: I have the ball and my Position. Use set me as Ballholder) str
+("\);) p n
+(162) # (    cmd.cmd_say.set_me_as_ball_holder\(WSinfo::me->pos\);) N
+(163) # (    ) S
+(return) K
+(;) p n
+(164) # (  }) N
+(165) # () N
+(166) # (  ) S
+(// Communication for PLAYER WO BALL) c n
+(167) # () S
+(  generate_players4communication\(cmd\);) p n
+(168) # (}) N
+(169) # () N
+(170) # () S
+(#define) K
+( MAX_SAY_CAPACITY 4 ) p
+(// no more than 4 players) c n
+(171) # () N
+(172) # () S
+(void) k
+( AttentionTo::generate_players4communication\(Cmd & cmd_form\){) p n
+(173) # () N
+(174) # (  WSpset players4communication;) N
+(175) # (  PPlayer ballholder = WSinfo::teammate_closest2ball\(\);) N
+(176) # () N
+(177) # (  ) S
+(if) K
+(\(!WSinfo::is_ball_kickable\(\)\) {) p
+(// I do not control the ball myself) c n
+(178) # () S
+(    ) p
+(// compute my next position) c n
+(179) # () S
+(    Vector my_next_pos, my_next_vel;) p n
+(180) # (    Angle my_next_ang;) N
+(181) # (    Tools::model_player_movement\(WSinfo::me->pos,WSinfo::me->vel,WSinfo::me->ang.get_value) N
+0 T (\(\),) N
+(182) # () S 8 T () S 16 T () S 24 T () S 32 T ( cmd_form.cmd_main, my_next_pos, ) N
+(183) # () S 8 T () S 16 T () S 24 T () S 32 T ( my_next_vel, my_next_ang\);) N
+(184) # () N
+(185) # (    MYLOG_POL\(0,<<") S
+(I am not holding the ball, so communicate my next position ) str
+(") p n
+(186) # () S 8 T (    << my_next_pos<<") S
+( \(current pos ) str
+("<<WSinfo::me->pos\);      ) p n
+(187) # (    ) S
+(//    MYLOG_POL\(0,<<_2D<<C2D\(my_next_pos.x, my_next_pos.y, 1.1, "grey"\)\);) c n
+(188) # () N
+(189) # () S
+(    ) p
+(// construct communication set :) c n
+(190) # () S
+(    WS::Player next_me = *WSinfo::me;) p n
+(191) # () N
+(192) # (    next_me.pos = my_next_pos;) N
+(193) # (    players4communication.append\(&next_me\);) N
+(194) # (      ) N
+(195) # (    ) S
+(if) K
+(\(ballholder !=) p
+(NULL) K
+(\){) p n
+(196) # (      WSpset pset= WSinfo::valid_opponents;) N
+(197) # (      pset.keep_players_with_max_age\(1\);) N
+(198) # () N
+(199) # (      ) S
+(float) k
+( width1 =  1.0 * 2* \(\(ballholder->pos-WSinfo::me->pos\).norm\(\)/2.5\);) p n
+(200) # (      ) S
+(float) k
+( width2 = 4; ) p
+(// at ball be  a little smaller) c n
+(201) # () S
+(      Quadrangle2d check_area = Quadrangle2d\(ballholder->pos, WSinfo::me->pos , width1, wi) p n
+0 T (dth2\);) N
+(202) # (      LOG_POL\(0, <<_2D<<check_area \);) N
+(203) # (      pset.keep_players_in\(check_area\);) N
+(204) # (      ) S
+(//pset.keep_players_in_quadrangle\(WSinfo::me->pos, ballholder->pos, 10 \); // players) c n
+0 T ( between me and ballholder) N
+(205) # () N
+(206) # () S
+(      pset.keep_and_sort_closest_players_to_point\(2,ballholder->pos\);) p n
+(207) # (    ) N
+(208) # (      ) S
+(if) K
+(\(pset.num>0\){) p n
+(209) # () S 8 T (MYLOG_POL\(0,<<") S
+(COMMUNICATE: Found Opponents in passway: ) str
+("<<pset.num\);) p n
+(210) # () S 8 T (players4communication.append\(pset\);) N
+(attention_to_bma.c) (Page 3/4) (Jul 28, 04 13:58) title
+border
+/v 1 store
+/x0 x v get 2.839212 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(211) # (      }) p n
+(212) # (      pset= WSinfo::valid_opponents;) N
+(213) # (      pset.keep_players_with_max_age\(0\);) N
+(214) # (      pset.keep_players_in_circle\(ballholder->pos,5.\); ) S
+(// opponents close 2 me) c n
+(215) # () S
+(      pset.keep_and_sort_closest_players_to_point\(2,ballholder->pos\);) p n
+(216) # (      ) S
+(if) K
+(\(pset.num>0\){) p n
+(217) # () S 8 T (MYLOG_POL\(0,<<") S
+(COMMUNICATE: Found Opponents close2e ballholder: ) str
+("<<pset.num\);) p n
+(218) # () S 8 T (players4communication.join\(pset\);) N
+(219) # (      }) N
+(220) # (    }) N
+(221) # () N
+(222) # (    ) S
+(if) K
+(\(players4communication.num < MAX_SAY_CAPACITY\){) p n
+(223) # (      WSpset pset= WSinfo::valid_opponents;) N
+(224) # (      pset.keep_players_with_max_age\(0\);) N
+(225) # (      pset.keep_players_in_circle\(my_next_pos,40.\); ) S
+(// opponents close 2 me) c n
+(226) # () S
+(      pset.keep_and_sort_closest_players_to_point\(10,my_next_pos\);) p n
+(227) # (      ) S
+(if) K
+(\(pset.num>0\){) p n
+(228) # () S 8 T (MYLOG_POL\(0,<<") S
+(COMMUNICATE: Found Opponents close2e my next pos: ) str
+("<<pset.num\);) p n
+(229) # () S 8 T (players4communication.join\(pset\);) N
+(230) # (      }) N
+(231) # (    }) N
+(232) # () N
+(233) # (    ) S
+(if) K
+(\(players4communication.num < MAX_SAY_CAPACITY\){) p n
+(234) # (      WSpset pset= WSinfo::valid_teammates_without_me;) N
+(235) # (      pset.keep_players_with_max_age\(0\);) N
+(236) # (      pset.keep_players_in_circle\(my_next_pos,40.\); ) S
+(// opponents close 2 me) c n
+(237) # () S
+(      pset.keep_and_sort_closest_players_to_point\(10,my_next_pos\);) p n
+(238) # (      ) S
+(if) K
+(\(pset.num>0\){) p n
+(239) # () S 8 T (MYLOG_POL\(0,<<") S
+(COMMUNICATE: Found Opponents close2e my next pos: ) str
+("<<pset.num\);) p n
+(240) # () S 8 T (players4communication.join\(pset\);) N
+(241) # (      }) N
+(242) # (    }) N
+(243) # () N
+(244) # () N
+(245) # () N
+(246) # (  } ) S
+(// ball is not kickable for me and teammate controls the ball) c n
+(247) # () N
+(248) # () N
+(249) # () N
+(250) # () S
+(  ) p
+(for) K
+(\() p
+(int) k
+( i=0; i<players4communication.num;i++\){) p n
+(251) # (    MYLOG_POL\(0,<<") S
+(My communication set ) str
+("<<i<<") p
+( number ) str
+(") p n
+(252) # () S 8 T (    <<players4communication[i]->number<<") S
+( pos ) str
+("<<players4communication[i]->pos\);) p n
+(253) # (    ) N
+(254) # (    MYLOG_POL\(0,<<_2D<<C2D\(players4communication[i]->pos.x, players4communication[i]->pos.) N
+0 T (y, 1.3, ") S
+(magenta) str
+("\)\);) p n
+(255) # (  }) N
+(256) # (  cmd_form.cmd_say.set_players\( players4communication \);) N
+(257) # () N
+(258) # (}) N
+(259) # () N
+(260) # (bool AttentionTo::teammate_controls_ball\() S
+(int) k
+( &number, Vector & pos\){) p n
+(261) # (  number = 0; ) S
+(// default) c n
+(262) # () S
+(  ) p
+(if) K
+(\(WSinfo::is_ball_kickable\(\) != false\){) p
+(// I control the ball myself!) c n
+(263) # () S
+(    ) p
+(return) K
+( false;) p n
+(264) # (  }) N
+(265) # (  ) S
+(int) k
+( steps2go;) p n
+(266) # (  Vector ipos;) N
+(267) # (    ) N
+(268) # (  PPlayer teammate=Tools::get_our_fastest_player2ball\(ipos, steps2go\);) N
+(269) # (  ) S
+(if) K
+(\(steps2go <=2 && teammate\){ ) p
+(// check: steps2go <= 1 oder steps2go <= 2 besser?) c n
+(270) # () S
+(    number=teammate->number;) p n
+(271) # (    pos = teammate->pos;) N
+(272) # (    ) S
+(return) K
+( true;) p n
+(273) # (  }) N
+(274) # (  ) S
+(return) K
+( false;) p n
+(275) # (}) N
+(276) # () N
+(attention_to_bma.c) (Page 4/4) (Jul 28, 04 13:58) title
+border
+grestore
+(Printed by Thomas Gabel) rhead
+(attention_to_bma.c) (2/2) (Monday April 04, 2005) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF
